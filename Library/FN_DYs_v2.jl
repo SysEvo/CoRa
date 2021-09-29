@@ -6,6 +6,8 @@ module fn
 	using DifferentialEquations
 	using ParameterizedFunctions
 	using Statistics
+	using LinearAlgebra
+	LinearAlgebra.BLAS.set_num_threads(1)
 
 	# Steady state function for a given system
 	# INPUT: syst - Handle for the ODE system (@ode_def)
@@ -94,10 +96,12 @@ module fn
 			soR = ones(length(motif.odeNF.syms));
 			while(rtol >= 1e-24)
 				# Reference steady state:
-				ssR = SS(motif.odeFB, p, ssR, rtol, uns);
+				# ssR = SS(motif.odeFB, p, ssR, rtol, uns); Cambio hecho ya que "uns" no existe en SS
+				ssR = SS(motif.odeFB, p, ssR, rtol);
 				# Locally analogous system reference steady state:
 				motif.localNF(p,ssR);
-				soR = SS(motif.odeNF, p, soR, rtol, uns);
+				# soR = SS(motif.odeNF, p, soR, rtol, uns); Cambio hecho ya que "uns" no existe en SS
+				soR = SS(motif.odeNF, p, soR, rtol);
 				if(abs(motif.outFB(ssR) - motif.outNF(soR)) > 1e-4)
 					rtol *= 1e-3;
 					if(rtol < 1e-24)
@@ -116,8 +120,10 @@ module fn
 			# Perturbation:
 			p[pert.p] *= pert.d;
 			if(flg1==1)
-				ssD = SS(motif.odeFB, p, ssR, rtol, uns);
-				soD = SS(motif.odeNF, p, soR, rtol, uns);
+				# ssD = SS(motif.odeFB, p, ssR, rtol, uns); Cambio hecho ya que "uns" no existe
+				ssD = SS(motif.odeFB, p, ssR, rtol);
+				# soD = SS(motif.odeNF, p, soR, rtol, uns); Cambio hecho ya que "uns" no existe
+				soD = SS(motif.odeNF, p, soR, rtol);
 				DYs[i] = DY(motif.outFB(ssR), motif.outFB(ssD), motif.outNF(soR), motif.outNF(soD));
 			end
 			p[pert.p] /= pert.d;
@@ -149,7 +155,8 @@ module fn
 	#        DYs   - Vector of DY values for the range of parameters
 	#        uns  - 1 to use a slower, more stable ODE solver
 	# OUPUT:       - [Optimal rho, steady state for the full system before & after perturbation, and for the non-feedback system before & after perturbation]
-	function SSopt(p, pert, motif, DYs, uns)
+	# function SSopt(p, pert, motif, DYs, uns) "uns" no se usaba en ningún lado!
+	function SSopt(p, pert, motif, DYs)
 		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
 		x = copy(DYs);
 		x[x .=== NaN] .= Inf;
@@ -160,10 +167,12 @@ module fn
 			soR = zeros(length(motif.odeNF.syms));
 			while(rtol >= 1e-24)
 				# Reference steady state:
-				ssR = SS(motif.odeFB, p, ssR, rtol, uns);
+				# ssR = SS(motif.odeFB, p, ssR, rtol, uns); Cambio hecho ya que "uns" no existe en SS
+				ssR = SS(motif.odeFB, p, ssR, rtol);
 				# Locally analogous system reference steady state:
 				motif.localNF(p,ssR);
-				soR = SS(motif.odeNF, p, soR, rtol, uns);
+				# soR = SS(motif.odeNF, p, soR, rtol, uns); Cambio hecho ya que "uns" no existe en SS
+				soR = SS(motif.odeNF, p, soR, rtol);
 				if(abs(motif.outFB(ssR) - motif.outNF(soR)) > 1e-4)
 					rtol *= 1e-3;
 					if(rtol < 1e-24)
@@ -177,8 +186,10 @@ module fn
 			end
 			# Perturbation:
 			p[pert.p] *= pert.d;
-			ssD = SS(motif.odeFB, p, ssR, rtol, uns);
-			soD = SS(motif.odeNF, p, soR, rtol, uns);
+			# ssD = SS(motif.odeFB, p, ssR, rtol, uns); Cambio hecho ya que "uns" no existe en SS
+			ssD = SS(motif.odeFB, p, ssR, rtol);
+			# soD = SS(motif.odeNF, p, soR, rtol, uns); Cambio hecho ya que "uns" no existe en SS
+			soD = SS(motif.odeNF, p, soR, rtol);
 		p[pert.p] /= pert.d;
 		p[pert.p] /= r[argmin(x)];
 		return [vcat(p[pert.p] * r[argmin(x)],ssR,ssD,soR,soD)]
