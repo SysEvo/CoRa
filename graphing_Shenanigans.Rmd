@@ -1,0 +1,49 @@
+---
+title: "Graphing attempt"
+author: "Emiliano Sánchez Escalante"
+date: "4/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, Chunk1}
+setwd("C:\\Users\\Lenovo\\Documents\\Cora")
+getwd()
+```
+
+```{r, libraries}
+library(ggplot2)
+```
+
+```{r, Chunk2}
+ATFv2_2B <- read.table("OUT_ExSSs_ATFv2_Fig2B_mY_mY.txt", header = T)
+ATFv2_2B <- ATFv2_2B[is.finite(rowSums(ATFv2_2B)),]
+head(ATFv2_2B)
+ATFv1_2B <- read.table("OUT_ExSSs_ATFv1_Fig2B_mY_mY.txt", header = T)
+ATFv1_2B <- ATFv1_2B[is.finite(rowSums(ATFv1_2B)),]
+head(ATFv1_2B)
+```
+
+```{r, Chunk3}
+ATF_Fig2B <- ggplot(ATFv2_2B, aes(log10(mY), CoRa.mY.)) + geom_line(data = ATFv1_2B, aes(log10(mY), CoRa.mY., colour = "ATFv1"), size = 2.5, linetype = "solid") + geom_line(aes(colour = "ATFv2"), size = 2.5, linetype = "dashed") + xlab(expression(paste("Y synthesis rate (", mu[Y],")"))) + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + geom_vline(aes(colour = "mY(1)", xintercept = log10(0.3863)), size = 2) + geom_vline(aes(xintercept = log10(3.9), colour = "mY(2)"), size = 2) + geom_vline(aes(xintercept = log10(125), colour = "mY(3)"), size = 2) + scale_color_manual(name = "Legend", breaks = c("ATFv1", "ATFv2", "mY(1)", "mY(2)", "mY(3)"), values = c("ATFv1" = "pink", "ATFv2" = "purple", "mY(1)" = "grey25", "mY(2)" = "grey50", "mY(3)" = "grey75"))
+
+ATF_Fig2B
+```
+
+```{r, Chunk4}
+ATFv2_2C <- read.table("OUT_ExSSs_ATFv2_Fig2C_mY_eM.txt", header = T, )
+ATFv2_2C <- ATFv2_2C[is.finite(rowSums(ATFv2_2C)),]
+head(ATFv2_2C, 25)
+ATFv1_2C <- read.table("OUT_ExSSs_ATFv1_Fig2C_mY_eM.txt", header = T)
+ATFv1_2C <- ATFv1_2C[is.finite(rowSums(ATFv1_2C)),]
+head(ATFv1_2C)
+```
+
+```{r, Chunk5}
+ATF_Fig2C <- ggplot(ATFv2_2C, aes(log10(eM), CoRa.mY.)) + geom_line(data = ATFv1_2C, aes(log10(eM), CoRa.mY., colour = "ATFv1"), size = 2.5, linetype = "solid") + geom_line(aes(colour = "ATFv2"), size = 2.5, linetype = "dashed") + ylim(0, 1) + xlim(log10(min(ATFv1_2C$eM)), log10(max(ATFv1_2C$eM))) + scale_color_manual(name = "Legend", breaks = c("ATFv1", "ATFv2"), values = c("ATFv1" = "pink", "ATFv2" = "purple")) + xlab(expression(paste("C degradation rate ("*eta["-"], ")"))) + ylab(expression(paste("CoRa"[eta["-"]%in%theta], "("*mu["-"],")")))
+
+ATF_Fig2C
+```
