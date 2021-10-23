@@ -12,6 +12,8 @@
 ## Load functions & parameters:
 using DelimitedFiles
 using Distributions
+#using LinearAlgebra
+#LinearAlgebra.BLAS.set_num_threads(1)
 mm = include(string("Library\\Md_",iARG.mm,".jl"));
 fn = include(string("Library\\FN_DYs_v2.jl"));
 ## INPUTS:
@@ -23,7 +25,7 @@ pO = copy(p);
 ## Run analysis
 # Calculate CoRa curve for a range of parameters:
 if(iARG.an=="ExSSs")
-	p = copy(pO); #Es una obviedad, puede quitarse (?)
+	p = copy(pO);
 	open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do io
 		writedlm(io, [vcat(iARG.ax,[string("FbR_",i) for i in mm.odeFB.syms],[string("FbD_",i) for i in mm.odeFB.syms],[string("NfR_",i) for i in mm.odeNF.syms],[string("NfD_",i) for i in mm.odeNF.syms],string("CoRa(",iARG.pp,")"))],'\t');
 		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);

@@ -14,4 +14,4 @@ p = Dict([
 ]);
 
 #Inital conditions
-x0 = zeros(length(mm.odeFB.syms));
+x0 = ones(length(mm.odeFB.syms));

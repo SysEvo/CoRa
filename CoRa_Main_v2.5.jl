@@ -32,7 +32,7 @@ if(iARG.an == "ExSSs")
             ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-12 (arbitrarily)
             p[pert.c] *= r[i];
             rtol = 1e-12;
-            ###Now, ssR & soR must be reset into a zeroes vector of the length of their respective model. We'll do this with the fn.Eestart() function
+            ###Now, ssR & soR must be reset into a NaNs vector of the length of their respective model. We'll do this with the fn.Restart() function
             ssR, soR = fn.Restart(ssR, soR)
             ###Up next, we must find the steady states of both ssR and soR, while also checking that the process itself didn't fail. Let's make that a single, "fn.SSandCheck()" function
             ssR, soR, rtol = fn.SSandCheck(ssR, soR, p, x0, rtol, mm)
