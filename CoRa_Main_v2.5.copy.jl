@@ -28,10 +28,11 @@ if(iARG.an == "ExSSs")
         for i in 1:length(r)
             ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-12 (arbitrarily)
             p[pert.c] *= r[i];
+            rtol = 1e-12;
             ###Up next, we must find the steady states of both ssR and soR, while also checking that the process itself didn't fail. Let's make that a single, "fn.SSandCheck()" function
-            ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-12, mm)
+            ssR, soR, rtol = fn.SSandCheck(p, x0, rtol, mm)
             ###Now, we have to do the Perturbation itself!
-            ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert)
+            ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm)
             ###And we must return CoRa now, too
             CoRa = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD))
             ###With everything done, it's time to output them into the file!
@@ -45,13 +46,7 @@ elseif(iARG.an == "CoRams")
 	open(string("OUT_DYms_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do outfile1
 		writedlm(outfile1, [vcat([string(i) for i in keys(pN)],10 .^ collect(pert.r[1]:pert.s:pert.r[2]))],'\t')
 		for pI = pN
-			for i = pI[2]
-				p = copy(p0);
-				### uns = 0; This line is completely unnecesary now
-				p[pI[1]] *= (10. ^i);
-				writedlm(outfile1, [vcat([p[i[1]] for i in pN],fn.CoRac(p,pert,mm))],'\t')
-				#p[pI[1]] /= (10. ^i); ###Don't really need to do this, if p is becoming p0 anyways
-			end
+			writedlm(outfile1, [vcat([p[i[1]] for i in pN], fn.CoRams(p0, pI, pN, pert, mm, outfile1))],'\t')
 		end
 	end
 end

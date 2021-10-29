@@ -74,10 +74,11 @@ module fn
 	end;
 
 	###Here it is, the SS&Check function. It will, of course, be built upon an SS() and a Check() funciton previously defined within this document
-	function SSandCheck(ssR, soR, p, x0, rtol, mm)
+	function SSandCheck(p, x0, rtol, mm)
 		###The rtol value basically states that this will be attempted 5 times: This is because of the comparison made in "if(abs(mm.outFB(ssR) - mm.outNF(soR)) > 1e-4)". If that is successful
 		###Then the value of rtol is multiplied by 1e-3, until it is no longer greater or equal than 1e-24, as stated in our while() condition
 		flag = "Insufficient"
+		ssR, soR = Restart(x0, x0)
 		while(rtol >= 1e-24 && flag == "Insufficient")
 			# Reference steady state:
 			ssR = fn.SS(mm.odeFB, p, x0, rtol);
@@ -98,9 +99,11 @@ module fn
 		return ssR, soR, rtol
 	end;
 
-	function Perturbation(ssR, soR, p, rtol, mm)
+	function Perturbation(ssR, soR, p, rtol, mm, pert)
+		p[pert.p] *= pert.d;
 		ssD = fn.SS(mm.odeFB, p, ssR, rtol);
 		soD = fn.SS(mm.odeNF, p, soR, rtol);
+		p[pert.p] /= pert.d;
 		return ssD, soD
 	end;
 
@@ -111,4 +114,40 @@ module fn
 		return log10(ssD/ssR)/log10(soD/soR);
 	end;
 
+	function CoRac(p, pert, mm)
+		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
+		CoRaValues = ones(length(r)) .+ Inf;
+		p[pert.p] = pert.c;
+		for i in 1:length(r)
+			p[pert.p] *= r[i];
+			rtol = 1e-6;
+			ssR, soR = ones(length(mm.odeFB.syms)), ones(length(mm.odeNF.syms));
+				try
+					flag = "Insufficient";
+					while(rtol >= 1e-24 && flag == "Insufficient")
+						ssR = fn.SS(mm.odeFB, p, ssR, rtol);
+						mm.localNF(p,ssR);
+						soR = fn.SS(mm.odeNF, p, soR, rtol);
+						ssR, soR, rtol, flag = fn.Check(ssR, soR, rtol, mm)
+					end
+					ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert)
+					CoRaValues[i] = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD));
+				catch err
+					println("WARNING: Error in ODE simulation: <<",err,">>. CoRa --> NaN")
+					CoRaValues[i] = NaN;
+				end
+			end
+			# Perturbation:
+			p[pert.p] /= r[i];
+		end
+		return CoRaValues
+	end;
+
+	function CoRams(p0, pI, pN, pert, mm, handle)
+		for i in pI[2]
+			p0[pI[1]] *= (10. ^i)
+			writedlm(handle, [vcat([p[j[1]] for j in pN], CoRac(p0, pert, mm))], '\t')
+			#p0[pI[1]] /= (10. ^i) Not needed
+		end
+	end;
 end
