@@ -47,10 +47,8 @@ elseif(iARG.an == "CoRams")
 		for pI = pN
 			for i = pI[2]
 				p = copy(p0);
-				### uns = 0; This line is completely unnecesary now
 				p[pI[1]] *= (10. ^i);
-				writedlm(outfile1, [vcat([p[i[1]] for i in pN],fn.CoRac(p,pert,mm))],'\t')
-				#p[pI[1]] /= (10. ^i); ###Don't really need to do this, if p is becoming p0 anyways
+				writedlm(outfile1, [vcat([p[j[1]] for j in pN], fn.CoRac(p,pert,mm, x0))],'\t')
 			end
 		end
 	end

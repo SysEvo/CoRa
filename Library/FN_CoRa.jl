@@ -62,8 +62,7 @@ module fn
 				println("ERROR: Check NF system (reltol=",rtol,").")
 				println(vcat(pert.p,i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],mm.outFB(ssR),mm.outNF(soR)))
 				if(abs(mm.outFB(ssR) - mm.outNF(soR))/mm.outFB(ssR) > 0.01)
-					ssR = zeros(length(mm.odeFB.syms)).+NaN;
-					soR = zeros(length(mm.odeNF.syms)).+NaN;
+					ssR, soR = Restart(ssR, soR);
 					println("Error too large. SS results excluded!")
 				end
 			end
@@ -114,28 +113,21 @@ module fn
 		return log10(ssD/ssR)/log10(soD/soR);
 	end;
 
-	function CoRac(p, pert, mm)
+	function CoRac(p, pert, mm, x0)
 		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
 		CoRaValues = ones(length(r)) .+ Inf;
 		p[pert.p] = pert.c;
 		for i in 1:length(r)
 			p[pert.p] *= r[i];
-			rtol = 1e-6;
+			rtol = 1e-12;
 			ssR, soR = ones(length(mm.odeFB.syms)), ones(length(mm.odeNF.syms));
-				try
-					flag = "Insufficient";
-					while(rtol >= 1e-24 && flag == "Insufficient")
-						ssR = fn.SS(mm.odeFB, p, ssR, rtol);
-						mm.localNF(p,ssR);
-						soR = fn.SS(mm.odeNF, p, soR, rtol);
-						ssR, soR, rtol, flag = fn.Check(ssR, soR, rtol, mm)
-					end
-					ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert)
-					CoRaValues[i] = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD));
-				catch err
-					println("WARNING: Error in ODE simulation: <<",err,">>. CoRa --> NaN")
-					CoRaValues[i] = NaN;
-				end
+			try
+				ssR, soR, rtol = SSandCheck(p, x0, rtol, mm)
+				ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert)
+				CoRaValues[i] = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD));
+			catch err
+				println("WARNING: Error in ODE simulation: <<",err,">>. CoRa --> NaN")
+				CoRaValues[i] = NaN;
 			end
 			# Perturbation:
 			p[pert.p] /= r[i];
@@ -143,10 +135,11 @@ module fn
 		return CoRaValues
 	end;
 
+	#Ignore this, please, it's not done yet
 	function CoRams(p0, pI, pN, pert, mm, handle)
 		for i in pI[2]
 			p0[pI[1]] *= (10. ^i)
-			writedlm(handle, [vcat([p[j[1]] for j in pN], CoRac(p0, pert, mm))], '\t')
+			writedlm(handle, [vcat([p[j[1]] for j in pN], CoRac(p0, pert, mm, x0))], '\t')
 			#p0[pI[1]] /= (10. ^i) Not needed
 		end
 	end;

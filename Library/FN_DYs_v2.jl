@@ -81,9 +81,8 @@ module fn
 	# INPUT: p     - Dictionary function with the ODE parameters & values
 	#        pert  - Handle for the perturbation details
 	#        motif - Handle for the considered motif
-	#        uns  - 1 to use a slower, more stable ODE solver
 	# OUPUT: DYs   - Vector of DY values for the range of parameters
-	function DYc(p, pert, motif, uns)
+	function DYc(p, pert, motif)
 		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
 		DYs = Array{Float64}(undef,length(r));
 		DYs /= 0;
