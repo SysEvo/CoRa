@@ -6,6 +6,8 @@ module fn
 	using DelimitedFiles
 	using Distributions
 	using DifferentialEquations
+	using DelimitedFiles
+	using Distributions
 
 	###This function is rather simple, but it's for readability in the main code purposes, and prevention of typos
 	function Restart(a, b)
