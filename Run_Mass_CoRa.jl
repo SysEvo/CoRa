@@ -1,11 +1,13 @@
 ## Running in julia terminal
-	cd("C:\\Users\\Lenovo\\Documents\\CoRa")
-       using Pkg; 
-       using BenchmarkTools;
+	cd("C:\\Users\\ese_1\\OneDrive\\Documentos\\CoRa")
+       using Pkg;
+       using CSV;
+       using DelimitedFiles;
        Pkg.activate(".");		# Activate local environment (requiere '.toml' files)
-	iARG = (mm = "ATFv2",  # Label for motif file
-       ex = "Fig2B",      # Label for parameters file
+	iARG = (mm = "FADv1",  # Label for motif file
+       ex = "altSmallSet",      # Label for parameters file
        pp = :mY,         # Label for perturbation type
-       ax = :mY,         # Label for condition/environment
-       an = "ExSSs");    # Chose analysis type (Options: ExSSs, ExDyn, CoRams, OptDY)
-	include("Mass_CoRa_Main.jl");
+       ax = :mY);    # Label for condition/environment
+       pars = CSV.File("InputFiles\\ARGS_FADv1_Mass_Par_altSmallSet.csv") # Core parameters
+       # print = "short"      # Flag for the output file including/excluding the steady states (Options: "short", "all")
+	include("Mass_CoRa_Main_FAD.jl");

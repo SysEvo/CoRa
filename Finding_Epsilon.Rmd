@@ -1,0 +1,491 @@
+---
+title: "Finding_Epsilon"
+author: "Emiliano Sánchez Escalante"
+date: "24/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, libraries}
+library(ggplot2)
+library(tidyr)
+library(cluster)
+library(SimilarityMeasures)
+library(kmlShape)
+library(dendextend)
+library(seriation)
+```
+
+```{r, Defining_Functions}
+ATF_generate <- function(rows){
+  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+  mY <- rep(0.125, rows)
+  gY <- sample(seq(from = 0.01, to = 100, by = 0.001), rows)
+  mU <- sample(seq(from = 0.00125, to = 12.5, by = 0.000125), rows)
+  gU <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
+  mW <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
+  gW <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000005), rows)
+  e0 <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000005), rows)
+  eP <- sample(seq(from = 0.000375, to = 3.75, by = 0.0000375), rows)
+  eM <- sample(seq(from = 0.005, to = 50, by = 0.0005), rows)
+  mUs <- rep(NaN, rows)
+  
+  csv <- data.frame(g, mY, gY, mU, gU, mW, gW, e0, eP, eM, mUs)
+  
+  return(csv)
+}
+
+BNF_generate <- function(rows){
+  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+  mY <- rep(0.125, rows)
+  gY <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
+  mU <- sample(seq(from = 0.02, to = 200, by = 0.0002), rows)
+  kD <- sample(seq(from = 0.01, to = 100, by = 0.0001), rows)
+  gU <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
+  b <- sample(seq(from = 0.000108, to = 1.08, by = 0.000001), rows)
+  bs <- sample(seq(from = 0.001565, to = 15.65, by = 0.000005), rows)
+  mUs <- rep(NaN, rows)
+  
+  csv <- data.frame(g, mY, gY, mU, kD, gU, b, bs, mUs)
+  
+  return(csv)
+}
+
+BMF2_generate <- function(rows){
+  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+  mY <- rep(0.125, rows)
+  gY <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
+  mA <- sample(seq(from = 0.00372, to = 37.2, by = 0.000001), rows)
+  kD <- sample(seq(from = 0.01, to = 100, by = 0.001), rows)
+  mB <- sample(seq(from = 0.00125, to = 12.5, by = 0.000001), rows)
+  mU <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
+  e0 <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
+  eP <- sample(seq(from = 0.0005, to = 5, by = 0.00001), rows)
+  bA <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
+  bI <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
+  mAs <- rep(NaN, rows)
+  
+  csv <- data.frame(g, mY, gY, mA, kD, mB, mU, e0, eP, bA, bI, mAs)
+  
+  return(csv)
+}
+
+BMF1_generate <- function(rows){
+  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+  mY <- rep(0.125, rows)
+  gY <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
+  mA <- sample(seq(from = 0.00372, to = 37.2, by = 0.000001), rows)
+  mB <- sample(seq(from = 0.00125, to = 12.5, by = 0.000001), rows)
+  mU <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
+  eP <- sample(seq(from = 0.0005, to = 5, by = 0.00001), rows)
+  e0 <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
+  bA <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
+  bI <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
+  mBs <- rep(NaN, rows)
+  
+  csv <- data.frame(g, mY, gY, mA, mB, mU, eP, e0, bA, bI, mBs)
+  
+  return(csv)
+}
+
+FAD_generate <- function(rows){
+  g <- sample(seq(from = 0.001, to = .1, by = 0.00001), rows)
+  mY <- rep(0.125, rows)
+  gY <- sample(seq(from = 0.01, to = 1, by = 0.0001), rows)
+  mU <- sample(seq(from = 0.0125, to = 1.25, by = 0.00001), rows)
+  gU <- sample(seq(from = 0.005, to = .5, by = 0.0001), rows)
+  mW <- sample(seq(from = 0.074, to = 7.4, by = 0.0001), rows)
+  gW <- sample(seq(from = 0.00001, to = 0.001, by = 0.000001), rows)
+  e0 <- sample(seq(from = 0.00001, to = 0.001, by = 0.0000001), rows)
+  eP <- sample(seq(from = 0.00375, to = .375, by = 0.000001), rows)
+  eM <- sample(seq(from = 0.05, to = 5, by = 0.001), rows)
+  mUs <- rep(NaN, rows)
+
+  csv <- data.frame(g, mY, gY, mU, gU, mW, gW, e0, eP, eM, mUs)
+  
+  return(csv)
+}
+
+FreDistances <- function(frame){
+  DissimMatrix <- matrix(0, ncol = ncol(frame), nrow = ncol(frame))
+  for(i in 1:ncol(frame)){
+    path1dat <- frame[,i][is.finite(frame[,i])]
+    path1 <- matrix(c(1:length(path1dat), path1dat), length(path1dat), byrow = F)
+    for(j in i:ncol(frame)){
+      if(i == j){
+        DissimMatrix[i,j] <- 0
+      }else{
+        path2dat <- frame[,j][is.finite(frame[,j])]
+        path2 <- matrix(c(1:length(path2dat), path2dat), length(path2dat), byrow = F)
+        
+        DissimMatrix[i,j] <- Frechet(path1, path2)
+        print(paste0("Fréchet distance between curves ", i, " and ", j, " calculated"))
+      }
+    }
+  }
+  DissimMatrix[lower.tri(DissimMatrix)] <- t(DissimMatrix)[lower.tri(DissimMatrix)]
+  return(DissimMatrix)
+}
+
+DPFreDistances <- function(frame, Epsi){
+  DissimMatrix <- matrix(0, ncol = ncol(frame), nrow = ncol(frame))
+  colnames(DissimMatrix) <- colnames(frame)
+  for(i in 1:ncol(frame)){
+    path1dat <- frame[,i][is.finite(frame[,i])]
+    path1 <- matrix(c(1:length(path1dat), path1dat), length(path1dat), byrow = F)
+    path1 <- as.matrix(DouglasPeuckerEpsilon(path1[,1], path1[,2], epsilon = Epsi))
+    for(j in i:ncol(frame)){
+      if(i == j){
+        DissimMatrix[i,j] <- 0
+      }else{
+        path2dat <- frame[,j][is.finite(frame[,j])]
+        path2 <- matrix(c(1:length(path2dat), path2dat), length(path2dat), byrow = F)
+        path2 <- as.matrix(DouglasPeuckerEpsilon(path2[,1], path2[,2], epsilon = Epsi))
+        
+        DissimMatrix[i,j] <- Frechet(path1, path2)
+        print(paste0("Fréchet distance between simplified curves ", i, " and ", j, " calculated"))
+      }
+    }
+  }
+  DissimMatrix[lower.tri(DissimMatrix)] <- t(DissimMatrix)[lower.tri(DissimMatrix)]
+  return(DissimMatrix)
+}
+
+ErrorMat <- function(frame, control, Epsi){
+  Unsimplified <- control
+  Simplified <- DPFreDistances(frame, Epsi)
+  ErrorMatrix <- abs(((Simplified - Unsimplified) / Unsimplified))
+  return(ErrorMatrix)
+}
+
+ErrorCheck <- function(ErrorMatrix, Epsi){
+  Maximum_Error <- max(ErrorMatrix[is.finite(ErrorMatrix)])
+  Average_Error <- mean(ErrorMatrix[is.finite(ErrorMatrix)])
+  Minimum_Error <- min(ErrorMatrix[is.finite(ErrorMatrix)])
+  SD_of_Error <- sd(ErrorMatrix[is.finite(ErrorMatrix)])
+  
+  Summary <- data.frame(Maximum_Error, Average_Error, Minimum_Error, SD_of_Error, Epsi)
+  
+  return(Summary)
+}
+```
+
+```{r, Creating_infile_ATF}
+set.seed(171299)
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
+write.csv(ATF_generate(50), file = "ARGS_ATFv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+```
+```{r, Creating_infile_BNF}
+set.seed(160396)
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
+write.csv(BNF_generate(50), file = "ARGS_BNFv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+```
+
+```{r, Creating_infile_BMF2}
+set.seed(160396)
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
+write.csv(BMF2_generate(50), file = "ARGS_BMFv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+```
+
+```{r, Creating_infile_BMF1}
+set.seed(160396)
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
+write.csv(BMF1_generate(50), file = "ARGS_BMFv1_Mass_Par_SmallSet.csv", row.names = FALSE)
+```
+```{r, Creating_infile_FAD}
+set.seed(160396)
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
+write.csv(FAD_generate(50), file = "ARGS_FADv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+```
+
+```{r, Verifying_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+ATFv1 <- read.table(file = "OUT_ExSSs_ATFv1_TestingSimplification_mY_mY_50.txt", header = T)
+ATFv1Names <- paste0("ATFv1_", 1:nrow(ATFv1))
+ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_TestingSimplification_mY_mY_50.txt", header = T)
+ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
+BNFv1 <- read.table(file = "OUT_ExSSs_BNFv1_SmallSet_mY_mY.txt", header = T)
+BNFv1Names <- paste0("BNFv1_", 1:nrow(BNFv1))
+BNFv2 <- read.table(file = "OUT_ExSSs_BNFv2_SmallSet_mY_mY.txt", header = T)
+BNFv2Names <- paste0("BNFv2_", 1:nrow(BNFv2))
+#BMFv1 <- read.table(file = "OUT_ExSSs_BMFv1_SmallSet_mY_mY.txt", header = T)
+#BMFv1Names <- paste0("BMFv1_", 1:nrow(BMFv1))
+CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)])))
+#CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)],BMFv1[, 2:ncol(BMFv1)]))) Includes BMFv1
+rm(ATFv1, ATFv2, BNFv1, BNFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(ATFv1Names, ATFv2Names, BNFv1Names, BNFv2Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+a
+```
+
+```{r, Finding_Epsilon}
+#Reference <- FreDistances(CoRas)
+#write.csv(Reference, file = "Reference10.csv")
+```
+```{r, Using Reference}
+Reference <- as.matrix(read.csv(file = "Reference10.csv", header = T))
+Reference <- Reference[, 2:ncol(Reference)]
+Stats <- data.frame(0, 0, 0, 0, 0)
+Matrixlist <- list()
+colnames(Stats) <- c("Maximum_Error", "Average_Error", "Minimum_Error", "SD_of_Error", "Epsi")
+for(i in 1:3){
+  epsilon <- (0.1 * (0.1)**i)
+  Matrixlist[[i]] <- ErrorMat(CoRas, Reference, epsilon)
+  Mistake <- ErrorMat(CoRas, Reference, epsilon)
+  Stats <- rbind(Stats, ErrorCheck(Mistake, epsilon))
+}
+
+#Matrixlist
+
+Stats <- Stats[2:nrow(Stats),]
+
+write.csv(Stats, file = "Stats10Local.csv", row.names = F)
+```
+
+```{r, Clustering_For_Fun}
+DissimMat2 <- AUTCTest
+owo <- pam(DissimMat2, diss = T, k = 6)
+Cluster <-owo$clustering
+plot(owo)
+dendrogram <- as.dendrogram(hclust(as.dist(DissimMat2), method = "average"))
+  coloursdend <- c(rep("blueviolet", length(ATFv1Names)), rep("darkgoldenrod4", length(ATFv2Names)), rep("firebrick4", length(BNFv1Names)), rep("forestgreen", length(BNFv2Names)))
+labels_colors(dendrogram) <- coloursdend[order.dendrogram(dendrogram)]
+plot(dendrogram, cex.lab= 0.33, main = "Comparación entre ATFv1, ATFv2, BNFv1 y BNFv2")
+```
+
+```{r, testing_the_function}
+maybeitworks <- function(Data){
+  MaxDist <- matrix(0, nrow = ncol(Data), ncol = ncol(Data))
+  for(i in 1:(ncol(Data) - 1)){
+    for(j in (i + 1):ncol(Data)){
+      LocalMax <- 0
+      iskip <- 0
+      jskip <- 0
+      FinishFlag <- 0
+      for(k in 1:nrow(Data)){
+        Buffer <- 0
+        if(!(is.finite(Data[k, i]))){
+          iskip <- iskip + 1
+        }else{
+          iskip <- 0
+        }
+        if(!(is.finite(Data[k, j]))){
+          jskip <- jskip + 1
+        }else{
+          jskip <- 0
+        }
+        if(iskip == 0 && jskip == 0){
+          Buffer <- abs(Data[k, i] - Data[k, j])
+        }else if(k == nrow(Data)){
+          Buffer <- sqrt((jskip * log(10 ** 0.01) - iskip * log(10 ** 0.01))**2 + (Data[k - jskip, j] - Data[k - iskip, i])**2)
+          FinishFlag <- 1
+        }else{
+          Buffer <- sqrt(((jskip * log(10 ** 0.01) - iskip * log(10 ** 0.01))*2)**2 + (Data[k - jskip, j] - Data[k - iskip, i])**2)
+        }
+        if(LocalMax < Buffer){
+          LocalMax <- Buffer
+        }else if(FinishFlag){
+          LocalMax <- LocalMax/2
+        }
+      }
+      MaxDist[i, j] <- LocalMax
+    }
+  }
+  MaxDist[lower.tri(MaxDist)] <- t(MaxDist)[lower.tri(MaxDist)]
+  return(MaxDist)
+}
+```
+```{r, here_we_go}
+Hope2 <- maybeitworks(CoRas)
+Hope2
+```
+```{r, ohmylord}
+sum(abs(Hope - Reference) / Reference, na.rm = T) / (nrow(Reference)**2 - nrow(Reference))
+```
+
+```{r, FunctionFrechet}
+FunctionFrechet <- function(Data){
+  FreDist <- matrix(0, nrow = ncol(Data), ncol = ncol(Data))
+  for(i in 1:(ncol(Data) - 1)){
+    for(j in i:ncol(Data)){
+      if(i == j){
+        next
+      }
+      LargestMin <- 0
+      for(k in 1:nrow(Data)){
+        Distances <- c()
+        if(is.nan(Data[k, i])){
+          next
+        }
+        for(l in 1:nrow(Data)){
+          if(!(is.nan(Data[l, j]))){
+            if(l == k){
+              Distances <- append(Distances, abs(Data[l, j] - Data[k, i]))
+            }else if(Data[l, j] == Data[k, i]){
+              Distances <- append(Distances, abs(l * log(10 ** 0.01) - k * log(10 ** 0.01)))
+            }else{
+              Distances <- append(Distances, sqrt((l * log(10 ** 0.01) - k * log(10 ** 0.01))**2 + (Data[l, j] - Data[k, i])**2))
+            }
+          }
+        }
+        if(LargestMin < min(Distances)){
+          LargestMin <- min(Distances)
+        }
+      }
+      FreDist[i, j] <- LargestMin
+      print(paste0(i, "and", j, "evaluated"))
+    }
+  }
+  return(FreDist)
+}
+```
+
+```{r, Copium}
+FunFreHope<- FunctionFrechet(CoRas[,1:3])
+FunFreHope
+```
+
+```{r, AreaUnderTheCurve}
+AUTC <- function(Data){
+  AreaMatrix <- matrix(0, nrow = ncol(Data), ncol = ncol(Data))
+  for(i in 1:(ncol(Data) - 1)){
+    for(j in i:ncol(Data)){
+      AccDiff <- 0
+      for(k in 1:nrow(Data)){
+        if(is.nan(Data[k, i]) & is.nan(Data[k, j])){
+        }else if(is.nan(Data[k, i]) | is.nan(Data[k, j])){
+          AccDiff <- AccDiff + 1
+        }else{
+          AccDiff <- AccDiff + abs(Data[k, i] - Data[k, j])
+        }
+      }
+      AreaMatrix[i, j] <- AccDiff
+    }
+  }
+  colnames(AreaMatrix) <- colnames(Data)
+  AreaMatrix[lower.tri(AreaMatrix)] <- t(AreaMatrix)[lower.tri(AreaMatrix)]
+  #AreaMatrix <- AreaMatrix/max(AreaMatrix) Undocument if you want your distances normalized for some reason
+  return(AreaMatrix)
+}
+```
+```{r, Using AUTC}
+AUTCTest <- AUTC(CoRas)
+AUTCTest
+```
+
+```{r, ggdisplot}
+ggdissplot(as.dist(AUTCTest), cluster_lines = T)
+```
+
+```{r, Verifying_BMFv1_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+BMFv1 <- read.table(file = "OUT_ExSSs_BMFv1_SmallSet_mY_mY.txt", header = T)
+BMFv1Names <- paste0("BMFv1_", 1:nrow(BMFv1))
+CoRas <- as.data.frame(t(BMFv1[, 2:ncol(BMFv1)]))
+#rm(BMFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(BMFv1Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z
+```
+
+```{r, Verifying_BMF_2_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+BMFv2 <- read.table(file = "OUT_ExSSs_BMFv2_SmallSet_mY_mY.txt", header = T)
+BMFv2Names <- paste0("BMFv2_", 1:nrow(BMFv2))
+CoRas <- as.data.frame(t(BMFv2[, 2:ncol(BMFv2)]))
+#rm(BMFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(BMFv2Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z
+```
+
+```{r, Verifying_FADv1_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+FADv1 <- read.table(file = "OUT_ExSSs_FADv1_SmallSet_mY_mY.txt", header = T)
+FADv1Names <- paste0("FADv1_", 1:nrow(FADv1))
+CoRas <- as.data.frame(t(FADv1[, 2:ncol(FADv1)]))
+#rm(BMFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(FADv1Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z
+```
+
+```{r, Verifying_FADv2_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+FADv2 <- read.table(file = "OUT_ExSSs_FADv2_SmallSet_mY_mY.txt", header = T)
+FADv2Names <- paste0("FADv2_", 1:nrow(FADv2))
+CoRas <- as.data.frame(t(FADv2[, 2:ncol(FADv2)]))
+#rm(BMFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(FADv2Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z
+```
+
+```{r, altFAD_generation}
+altFAD_generate <- function(rows){
+  g <- abs(rnorm(rows, mean = 0.01, sd = 0.1*0.01))
+  mY <- rep(0.125, rows)
+  gY <- abs(rnorm(rows, mean = 0.1, sd = 0.1*0.1))
+  mU <- abs(rnorm(rows, mean = 0.125, sd = 0.1*0.125))
+  gU <- abs(rnorm(rows, mean = 0.05, sd = 0.1*0.5))
+  mW <- abs(rnorm(rows, mean = 0.74, sd = 0.1*0.74))
+  gW <- abs(rnorm(rows, mean = 0.0001, sd = 0.1*0.0001))
+  e0 <- abs(rnorm(rows, mean = 0.0001, sd = 0.1*0.0001))
+  eP <- abs(rnorm(rows, mean = 0.0375, sd = 0.1*0.0375))
+  eM <- abs(rnorm(rows, mean = 0.5, sd = 0.1*0.5))
+  mUs <- rep(NaN, rows)
+
+  csv <- data.frame(g, mY, gY, mU, gU, mW, gW, e0, eP, eM, mUs)
+  
+  return(csv)
+}
+```
+```{r, Creating_infile_altFAD}
+set.seed(160396)
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
+write.csv(altFAD_generate(50), file = "ARGS_FADv1_Mass_Par_altSmallSet.csv", row.names = FALSE)
+```
+```{r, Verifying_altFADv1_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+altFADv1 <- read.table(file = "OUT_ExSSs_FADv1_altSmallSet_mY_mY.txt", header = T)
+altFADv1Names <- paste0("altFADv1_", 1:nrow(altFADv1))
+CoRas <- as.data.frame(t(altFADv1[, 2:ncol(altFADv1)]))
+#rm(BMFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(altFADv1Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z
+```
+```{r, Verifying_altFADv2_outfile}
+setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+altFADv2 <- read.table(file = "OUT_ExSSs_FADv2_altSmallSet_mY_mY.txt", header = T)
+altFADv2Names <- paste0("altFADv2_", 1:nrow(altFADv2))
+CoRas <- as.data.frame(t(altFADv2[, 2:ncol(altFADv2)]))
+#rm(BMFv2)
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(altFADv2Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z
+```
