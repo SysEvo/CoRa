@@ -6,6 +6,7 @@ module fn
 	using DelimitedFiles
 	using Distributions
 	using DifferentialEquations
+	using ModelingToolkit
 
 	###This function is rather simple, but it's for readability in the main code purposes, and prevention of typos
 	function Restart(a, b)
@@ -21,20 +22,29 @@ module fn
 		dXrm = 1;
 		while(dXrm > rtol)
 			ss = try
-				solve(ODEProblem(syst,x0,1e6,pV); reltol=rtol,save_everystep = false);
+				fn.solve(fn.ODEProblem(syst,x0,1e6,pV); reltol=rtol,save_everystep = false);
 			catch
 				try
-					solve(ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
+					fn.solve(fn.ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
 				catch err
 					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
 					x0 = zeros(length(syst.syms)).+NaN;
 					break
 				end
 			end;
+			if ss.retcode == :Unstable
+				try
+					ss = fn.solve(fn.ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
+				catch err
+					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
+					x0 = zeros(length(syst.syms)).+NaN;
+					break
+				end
+			end
 			dXrm = maximum(abs.(big.(ss(1e6))-big.(ss(1e6-0.01)))./big.(ss(1e6)));
 			x0 = ss(1e6);
 			tS += 1e6;
-			if(tS>=1e12)
+			if(tS>1e12)
 				println("WARNING: Maximum iteration reached (simulated time 1e18). Max relative Delta: ",dXrm)
 				break
 			end
@@ -75,11 +85,11 @@ module fn
 		###The rtol value basically states that this will be attempted 5 times: This is because of the comparison made in "if(abs(mm.outFB(ssR) - mm.outNF(soR)) > 1e-4)". If that is successful
 		###Then the value of rtol is multiplied by 1e-3, until it is no longer greater or equal than 1e-24, as stated in our while() condition
 		flag = "Insufficient"
-		ssR, soR = Restart(x0, x0)
+		ssR, soR = fn.Restart(x0, x0)
 		while(rtol >= 1e-24 && flag == "Insufficient")
 			# Reference steady state:
 			ssR = fn.SS(mm.odeFB, p, x0, rtol);
-			if(NaNCheck(ssR, soR) != "Valid")
+			if(fn.NaNCheck(ssR, soR) != "Valid")
 				println("Condition excluded! ssR --> NaN");
 				break;
 			end
@@ -87,7 +97,7 @@ module fn
 			mm.localNF(p,ssR);
 			###Of note here, instead of using the initial condition x0, we use ssR.
 			soR = fn.SS(mm.odeNF, p, ssR, rtol);
-			if(NaNCheck(soR, ssR) != "Valid")
+			if(fn.NaNCheck(soR, ssR) != "Valid")
 				println("Condition excluded! soR --> NaN");
 				break;
 			end

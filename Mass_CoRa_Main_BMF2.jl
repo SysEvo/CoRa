@@ -45,7 +45,7 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
                 ###With everything done, it's time to output them into the file!
                 ###Check this one out
                 ###And we reset our perturbation for the next run of the loop
-                p[pert.c] /= r[k];
+                p[pert.c] = p0[pert.c];
             end
         catch
         end

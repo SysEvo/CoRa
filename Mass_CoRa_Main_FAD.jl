@@ -17,8 +17,8 @@ fn = include(string("Library\\FN_CoRa.jl"));
 include(string("InputFiles\\ARGS_",iARG.mm,"_Pert_",iARG.ex,".jl")) # Perturbation details
 key_names = (:g, :mY, :gY, :mU, :gU, :mW, :gW, :e0, :eP, :eM, :mUs);
 x0 = zeros(length(mm.odeFB.syms));
+r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
 open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do outfile1
-    r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
     writedlm(outfile1, [vcat(string("Row"), r)],'\t');
     for i in 1:pars.rows
         p = Dict();
@@ -31,7 +31,6 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
         ###This creates our "steps" for the data production, as stated in the .*_Pert_.*.jl file
         CoRa = zeros(length(r)).+ NaN;
         ###So, then, this will repeat the for loop in however many steps for the parameters
-        k = 1;
         try
             for k in 1:length(r)
                 ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-12 (arbitrarily)
@@ -45,7 +44,7 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
                 ###With everything done, it's time to output them into the file!
                 ###Check this one out
                 ###And we reset our perturbation for the next run of the loop
-                p[pert.c] /= r[k];
+                p[pert.c] = p0[pert.c];
             end
         catch
         end

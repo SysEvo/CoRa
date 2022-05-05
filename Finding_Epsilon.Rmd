@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, libraries}
 library(ggplot2)
+library(ggpubr)
 library(tidyr)
 library(cluster)
 library(SimilarityMeasures)
@@ -205,19 +206,22 @@ write.csv(FAD_generate(50), file = "ARGS_FADv2_Mass_Par_SmallSet.csv", row.names
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
 ATFv1 <- read.table(file = "OUT_ExSSs_ATFv1_TestingSimplification_mY_mY_50.txt", header = T)
 ATFv1Names <- paste0("ATFv1_", 1:nrow(ATFv1))
-ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_TestingSimplification_mY_mY_50.txt", header = T)
-ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
-BNFv1 <- read.table(file = "OUT_ExSSs_BNFv1_SmallSet_mY_mY.txt", header = T)
-BNFv1Names <- paste0("BNFv1_", 1:nrow(BNFv1))
-BNFv2 <- read.table(file = "OUT_ExSSs_BNFv2_SmallSet_mY_mY.txt", header = T)
-BNFv2Names <- paste0("BNFv2_", 1:nrow(BNFv2))
+#ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_TestingSimplification_mY_mY_50.txt", header = T)
+#ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
+#BNFv1 <- read.table(file = "OUT_ExSSs_BNFv1_SmallSet_mY_mY.txt", header = T)
+#BNFv1Names <- paste0("BNFv1_", 1:nrow(BNFv1))
+#BNFv2 <- read.table(file = "OUT_ExSSs_BNFv2_SmallSet_mY_mY.txt", header = T)
+#BNFv2Names <- paste0("BNFv2_", 1:nrow(BNFv2))
 #BMFv1 <- read.table(file = "OUT_ExSSs_BMFv1_SmallSet_mY_mY.txt", header = T)
 #BMFv1Names <- paste0("BMFv1_", 1:nrow(BMFv1))
-CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)])))
+CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)])))
+#CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)])))
 #CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)],BMFv1[, 2:ncol(BMFv1)]))) Includes BMFv1
-rm(ATFv1, ATFv2, BNFv1, BNFv2)
+rm(ATFv1)
+#, ATFv2, BNFv1, BNFv2)
 CoRas[CoRas > 1] <- NaN
-colnames(CoRas) <- c(ATFv1Names, ATFv2Names, BNFv1Names, BNFv2Names)
+colnames(CoRas) <- c(ATFv1Names)
+#, ATFv2Names, BNFv1Names, BNFv2Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
 a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
@@ -252,6 +256,7 @@ write.csv(Stats, file = "Stats10Local.csv", row.names = F)
 DissimMat2 <- AUTCTest
 owo <- pam(DissimMat2, diss = T, k = 6)
 Cluster <-owo$clustering
+DissimMat2 <- DissimMat2[names(sort(Cluster)), names(sort(Cluster))]
 plot(owo)
 dendrogram <- as.dendrogram(hclust(as.dist(DissimMat2), method = "average"))
   coloursdend <- c(rep("blueviolet", length(ATFv1Names)), rep("darkgoldenrod4", length(ATFv2Names)), rep("firebrick4", length(BNFv1Names)), rep("forestgreen", length(BNFv2Names)))
@@ -369,6 +374,7 @@ AUTC <- function(Data){
     }
   }
   colnames(AreaMatrix) <- colnames(Data)
+  rownames(AreaMatrix) <- colnames(Data)
   AreaMatrix[lower.tri(AreaMatrix)] <- t(AreaMatrix)[lower.tri(AreaMatrix)]
   #AreaMatrix <- AreaMatrix/max(AreaMatrix) Undocument if you want your distances normalized for some reason
   return(AreaMatrix)
@@ -380,7 +386,7 @@ AUTCTest
 ```
 
 ```{r, ggdisplot}
-ggdissplot(as.dist(AUTCTest), cluster_lines = T)
+ggdissplot(as.dist(DissimMat2), labels = sort(Cluster), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "darkorchid4", high = "white", na.value = "grey75")
 ```
 
 ```{r, Verifying_BMFv1_outfile}
@@ -483,9 +489,18 @@ altFADv2Names <- paste0("altFADv2_", 1:nrow(altFADv2))
 CoRas <- as.data.frame(t(altFADv2[, 2:ncol(altFADv2)]))
 #rm(BMFv2)
 CoRas[CoRas > 1] <- NaN
-colnames(CoRas) <- c(altFADv2Names)
+colnames(CoRas) <- altFADv2Names
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
-z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))# + ylim(c(0, 1))
+#z <- ggplot(data = Graphing, aes(x = step, y = value)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
 z
+```
+
+```{r, seriation}
+DissimMat3 <- as.dist(AUTCTest)
+SerDissimMat3 <- seriate(DissimMat3, method = "ARSA")
+a <- pimage(DissimMat3, main = "Unordered")
+b <- pimage(DissimMat3, SerDissimMat3, main = "Seriated")
+hmap(DissimMat3, method = "ARSA", row_labels = T, col = colorRampPalette(c("black", "purple"))(2500), main = "Cluster?", prop = T)
 ```
