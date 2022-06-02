@@ -13,11 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(ggpubr)
 library(tidyr)
+library(tidyverse)
 library(cluster)
 library(SimilarityMeasures)
 library(kmlShape)
 library(dendextend)
 library(seriation)
+library(factoextra)
 ```
 
 ```{r, Defining_Functions}
@@ -177,7 +179,7 @@ ErrorCheck <- function(ErrorMatrix, Epsi){
 ```{r, Creating_infile_ATF}
 set.seed(171299)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(ATF_generate(50), file = "ARGS_ATFv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(ATF_generate(50), file = "ARGS_ATFv1_Mass_Par_SmallSet.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_BNF}
 set.seed(160396)
@@ -204,24 +206,31 @@ write.csv(FAD_generate(50), file = "ARGS_FADv2_Mass_Par_SmallSet.csv", row.names
 
 ```{r, Verifying_outfile}
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
-ATFv1 <- read.table(file = "OUT_ExSSs_ATFv1_TestingSimplification_mY_mY_50.txt", header = T)
+ATFv1 <- read.table(file = "OUT_ExSSs_ATFv1_SmallSet_mY_mY.txt", header = T)
 ATFv1Names <- paste0("ATFv1_", 1:nrow(ATFv1))
-#ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_TestingSimplification_mY_mY_50.txt", header = T)
-#ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
+ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_SmallSet_mY_mY.txt", header = T)
+ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
 #BNFv1 <- read.table(file = "OUT_ExSSs_BNFv1_SmallSet_mY_mY.txt", header = T)
 #BNFv1Names <- paste0("BNFv1_", 1:nrow(BNFv1))
 #BNFv2 <- read.table(file = "OUT_ExSSs_BNFv2_SmallSet_mY_mY.txt", header = T)
 #BNFv2Names <- paste0("BNFv2_", 1:nrow(BNFv2))
+#BMFv2 <- read.table("OUT_ExSSs_BMFv2_SmallSet_mY_mY.txt", header = T)
+#BMFv2Names <- paste0("BMFv2_", 1:nrow(BMFv2))
+FADv1 <- read.table(file = "OUT_ExSSs_FADv1_SmallSet_mY_mY.txt", header = T)
+FADv1Names <- paste0("FADv1_", 1:nrow(FADv1))
+FADv2 <- read.table(file = "OUT_ExSSs_FADv2_SmallSet_mY_mY.txt", header = T)
+FADv2Names <- paste0("FADv2_", 1:nrow(FADv2))
 #BMFv1 <- read.table(file = "OUT_ExSSs_BMFv1_SmallSet_mY_mY.txt", header = T)
 #BMFv1Names <- paste0("BMFv1_", 1:nrow(BMFv1))
-CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)])))
-#CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)])))
-#CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)],BMFv1[, 2:ncol(BMFv1)]))) Includes BMFv1
-rm(ATFv1)
-#, ATFv2, BNFv1, BNFv2)
-CoRas[CoRas > 1] <- NaN
-colnames(CoRas) <- c(ATFv1Names)
-#, ATFv2Names, BNFv1Names, BNFv2Names)
+CoRas <- as.data.frame(t(rbind(ATFv1[, 2:ncol(ATFv1)], ATFv2[, 2:ncol(ATFv2)], FADv1[, 2:ncol(FADv1)], FADv2[, 2:ncol(FADv2)])))
+# , BNFv1[, 2:ncol(BNFv1)], BNFv2[, 2:ncol(BNFv2)], BMFv2[, 2:ncol(BMFv2)]
+rm(ATFv1, ATFv2, FADv1, FADv2)
+# , BNFv1, BNFv2, BMFv2,
+#, BNFv2)
+#CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(ATFv1Names, ATFv2Names, FADv1Names, FADv2Names)
+# , BNFv1Names, BNFv2Names, BMFv2Names
+#BNFv2Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
 a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
@@ -252,9 +261,16 @@ Stats <- Stats[2:nrow(Stats),]
 write.csv(Stats, file = "Stats10Local.csv", row.names = F)
 ```
 
-```{r, Clustering_For_Fun}
+```{r, Calculating_Optimal_K}
 DissimMat2 <- AUTCTest
-owo <- pam(DissimMat2, diss = T, k = 6)
+set.seed(1337)
+kcalc <- clusGap(DissimMat2, FUN = kmeans, nstart = 25, K.max = 15, B = 50)
+fviz_gap_stat(kcalc)
+fviz_nbclust(DissimMat2, kmeans, method = "wss")
+fviz_nbclust(DissimMat2, kmeans, method = "silhouette")
+```
+```{r, Clustering_For_Fun}
+owo <- pam(DissimMat2, diss = T, k = 5)
 Cluster <-owo$clustering
 DissimMat2 <- DissimMat2[names(sort(Cluster)), names(sort(Cluster))]
 plot(owo)
@@ -395,7 +411,7 @@ BMFv1 <- read.table(file = "OUT_ExSSs_BMFv1_SmallSet_mY_mY.txt", header = T)
 BMFv1Names <- paste0("BMFv1_", 1:nrow(BMFv1))
 CoRas <- as.data.frame(t(BMFv1[, 2:ncol(BMFv1)]))
 #rm(BMFv2)
-CoRas[CoRas > 1] <- NaN
+#CoRas[CoRas > 1] <- NaN
 colnames(CoRas) <- c(BMFv1Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
@@ -427,7 +443,7 @@ CoRas[CoRas > 1] <- NaN
 colnames(CoRas) <- c(FADv1Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
-z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ylim(c(0, 1))
 z
 ```
 
@@ -441,7 +457,7 @@ CoRas[CoRas > 1] <- NaN
 colnames(CoRas) <- c(FADv2Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
-z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ylim(c(0,1))
 z
 ```
 
@@ -479,7 +495,7 @@ CoRas[CoRas > 1] <- NaN
 colnames(CoRas) <- c(altFADv1Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
-z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ylim(c(0, 1))
 z
 ```
 ```{r, Verifying_altFADv2_outfile}
@@ -488,11 +504,11 @@ altFADv2 <- read.table(file = "OUT_ExSSs_FADv2_altSmallSet_mY_mY.txt", header = 
 altFADv2Names <- paste0("altFADv2_", 1:nrow(altFADv2))
 CoRas <- as.data.frame(t(altFADv2[, 2:ncol(altFADv2)]))
 #rm(BMFv2)
-CoRas[CoRas > 1] <- NaN
+#CoRas[CoRas > 1] <- NaN
 colnames(CoRas) <- altFADv2Names
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
-z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))# + ylim(c(0, 1))
+z <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ylim(c(0, 1))
 #z <- ggplot(data = Graphing, aes(x = step, y = value)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
 z
 ```
