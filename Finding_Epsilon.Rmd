@@ -20,6 +20,7 @@ library(kmlShape)
 library(dendextend)
 library(seriation)
 library(factoextra)
+library(data.table)
 ```
 
 ```{r, Defining_Functions}
@@ -179,7 +180,7 @@ ErrorCheck <- function(ErrorMatrix, Epsi){
 ```{r, Creating_infile_ATF}
 set.seed(171299)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(ATF_generate(50), file = "ARGS_ATFv1_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(ATF_generate(1250), file = "ARGS_ATFv2_Mass_Par_1250Set1.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_BNF}
 set.seed(160396)
@@ -275,9 +276,9 @@ Cluster <-owo$clustering
 DissimMat2 <- DissimMat2[names(sort(Cluster)), names(sort(Cluster))]
 plot(owo)
 dendrogram <- as.dendrogram(hclust(as.dist(DissimMat2), method = "average"))
-  coloursdend <- c(rep("blueviolet", length(ATFv1Names)), rep("darkgoldenrod4", length(ATFv2Names)), rep("firebrick4", length(BNFv1Names)), rep("forestgreen", length(BNFv2Names)))
+  coloursdend <- c(rep("blueviolet", length(ATFv2Names)))
 labels_colors(dendrogram) <- coloursdend[order.dendrogram(dendrogram)]
-plot(dendrogram, cex.lab= 0.33, main = "Comparación entre ATFv1, ATFv2, BNFv1 y BNFv2")
+plot(dendrogram, cex.lab= 0.33, main = "ATFv2 1/2")
 ```
 
 ```{r, testing_the_function}
@@ -519,4 +520,26 @@ SerDissimMat3 <- seriate(DissimMat3, method = "ARSA")
 a <- pimage(DissimMat3, main = "Unordered")
 b <- pimage(DissimMat3, SerDissimMat3, main = "Seriated")
 hmap(DissimMat3, method = "ARSA", row_labels = T, col = colorRampPalette(c("black", "purple"))(2500), main = "Cluster?", prop = T)
+```
+
+```{r, merging_ATFv2_by_hand}
+ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY.txt", header = T)
+#ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
+ATFv2_71 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_71.txt", header = T)
+ATFv2_109 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_109.txt", header = T)
+ATFv2_285 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_285.txt", header = T)
+ATFv2_373 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_373.txt", header = T)
+ATFv2_426 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_426.txt", header = T)
+ATFv2_503 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_503.txt", header = T)
+ATFv2_625 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_625.txt", header = T)
+ATFv2_Merged <- rbind(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625)
+rm(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625)
+ATFv2_Names <- paste0("ATFv2_", 1:nrow(ATFv2_Merged))
+CoRas <- as.data.frame(t(rbind(ATFv2_Merged[, 2:ncol(ATFv2_Merged)])))
+CoRas[CoRas > 1] <- NaN
+colnames(CoRas) <- c(ATFv2_Names)
+Graphing <- tidyr::gather(CoRas)
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
+a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+a
 ```

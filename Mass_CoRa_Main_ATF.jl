@@ -50,5 +50,6 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
         catch
         end
         writedlm(outfile1, [vcat(i, CoRa)],'\t');
+        print(string("Line ", i, "done! \n"))
     end
 end
