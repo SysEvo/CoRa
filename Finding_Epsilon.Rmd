@@ -183,9 +183,9 @@ setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta 
 write.csv(ATF_generate(1250), file = "ARGS_ATFv2_Mass_Par_1250Set1.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_BNF}
-set.seed(160396)
+set.seed(041219)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(BNF_generate(50), file = "ARGS_BNFv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(BNF_generate(1250), file = "ARGS_BNFv1_Mass_Par_1250Set1.csv", row.names = FALSE)
 ```
 
 ```{r, Creating_infile_BMF2}
@@ -532,14 +532,34 @@ ATFv2_373 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_373.txt", he
 ATFv2_426 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_426.txt", header = T)
 ATFv2_503 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_503.txt", header = T)
 ATFv2_625 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_625.txt", header = T)
-ATFv2_Merged <- rbind(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625)
-rm(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625)
+ATFv2_664 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_664.txt", header = T)
+ATFv2_719 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_719.txt", header = T)
+ATFv2_856 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_856.txt", header = T)
+ATFv2_859 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_859.txt", header = T)
+ATFv2_904 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_904.txt", header = T)
+ATFv2_936 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_936.txt", header = T)
+ATFv2_947 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_947.txt", header = T)
+ATFv2_979 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_979.txt", header = T)
+ATFv2_982 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_982.txt", header = T)
+ATFv2_1004 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_1004.txt", header = T)
+ATFv2_1182 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_1182.txt", header = T)
+ATFv2_Merged <- rbind(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625, ATFv2_664, ATFv2_719, ATFv2_856, ATFv2_859, ATFv2_904, ATFv2_936, ATFv2_947, ATFv2_979, ATFv2_982, ATFv2_1004, ATFv2_1182)
+BNFv2 <- read.table(file = "OUT_ExSSs_BNFv2_1250Set1_mY_mY.txt", header = T)
+rm(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625, ATFv2_664, ATFv2_719, ATFv2_856, ATFv2_859, ATFv2_904, ATFv2_936, ATFv2_947, ATFv2_979, ATFv2_982, ATFv2_1004, ATFv2_1182)
 ATFv2_Names <- paste0("ATFv2_", 1:nrow(ATFv2_Merged))
-CoRas <- as.data.frame(t(rbind(ATFv2_Merged[, 2:ncol(ATFv2_Merged)])))
+BNFv2_Names <- paste0("BNFv2_", 1:nrow(BNFv2))
+CoRas <- as.data.frame(t(rbind(ATFv2_Merged[, 2:ncol(ATFv2_Merged)], BNFv2[, 2:ncol(BNFv2)])))
 CoRas[CoRas > 1] <- NaN
-colnames(CoRas) <- c(ATFv2_Names)
+colnames(CoRas) <- c(ATFv2_Names, BNFv2_Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
 a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
 a
+```
+
+```{r, graphing_Cluster_Members}
+Partial = tidyr::gather(CoRas[, names(Cluster[which(Cluster == 5)])])
+Partial$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas[, names(Cluster[which(Cluster == 5)])]))
+b <- ggplot(data = Partial, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+b
 ```

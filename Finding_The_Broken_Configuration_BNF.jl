@@ -9,7 +9,7 @@ iARG = (mm = "BNFv1",  # Label for motif file
 ex = "1250Set1",      # Label for parameters file
 pp = :mY,         # Label for perturbation type
 ax = :mY);    # Label for condition/environment
-a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_194.txt")
+a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_498.txt")
 last_index = floor(Int, a[size(a,1), 1]) 
 
 print(string(last_index, "\n"))
