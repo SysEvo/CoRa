@@ -524,7 +524,6 @@ hmap(DissimMat3, method = "ARSA", row_labels = T, col = colorRampPalette(c("blac
 
 ```{r, merging_ATFv2_by_hand}
 ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY.txt", header = T)
-#ATFv2Names <- paste0("ATFv2_", 1:nrow(ATFv2))
 ATFv2_71 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_71.txt", header = T)
 ATFv2_109 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_109.txt", header = T)
 ATFv2_285 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_285.txt", header = T)

@@ -143,6 +143,28 @@ module fn
 		return CoRaValues
 	end;
 
+	function Dyn(syst, p, x0, tspan, rtol)
+		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps];
+		xD = try
+			fn.solve(fn.ODEProblem(syst,x0,tspan,pV); reltol=rtol);
+		catch
+			try
+				fn.solve(fn.ODEProblem(syst,x0,tspan,pV),alg_hints=[:stiff]; reltol=rtol);
+			catch err
+				println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
+				zeros(length(syst.syms)).+NaN;
+			end
+		end;
+		if xD.retcode == :Unstable
+			try
+				xD = fn.solve(fn.ODEProblem(syst,x0,tspan,pV),alg_hints=[:stiff]; reltol=rtol);
+			catch err
+				println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
+				zeros(length(syst.syms)).+NaN;
+			end
+		end
+		return(xD)
+	end
 	#Ignore this, please, it's not done yet
 	function CoRams(p0, pI, pN, pert, mm, handle)
 		for i in pI[2]

@@ -4,7 +4,7 @@ using CSV;
 using DelimitedFiles;
 using Distributions;
 
-a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_498.txt")
+a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_810.txt")
 start = floor(Int, a[size(a,1), 1]) + 1
 
 Pkg.activate(".");		# Activate local environment (requiere '.toml' files)

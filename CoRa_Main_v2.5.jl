@@ -52,4 +52,62 @@ elseif(iARG.an == "CoRams")
 			end
 		end
 	end
+elseif(iARG.an == "ExDyn")
+    open(string("OUT_ExDyn_", iARG.mm, "_", iARG.ex, "_", iARG.pp, "_", iARG.ax, ".txt"), "w") do outfile1
+        writedlm(outfile1, [vcat("FB","rho","time",[string(i) for i in mm.odeNF.syms])],'\t');
+        ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-12, mm)
+        #This whole part is the feedback one
+        syst = mm.odeFB;
+        x = fn.Dyn(syst, p, ssR, 500.0, rtol);
+        try
+            if(any(isnan.(x)))
+                writedlm(outfile1, [vcat(1,p[iARG.pp],0,x,"NaN")],'\t');
+            end
+        catch
+            for i in 1:length(x.t)
+                writedlm(outfile1, [vcat(1,p[iARG.pp],x.t[i],x.u[i],"NaN")],'\t');
+            end
+            p[pert.p] *= pert.d;
+            x = fn.Dyn(syst, p, last(x.u), 95000.0, rtol);
+            try
+                if(any(isnan.(x)))
+                    writedlm(outfile1, [vcat(1,p[iARG.pp],500.0,x,"NaN")],'\t');
+                end
+            catch
+                for i in 1:length(x.t)
+                    writedlm(outfile1, [vcat(1,p[iARG.pp],x.t[i]+500.0,x.u[i],"NaN")],'\t');
+                end
+                ssD = fn.SS(syst, p, ssR, rtol)
+                writedlm(outfile1, [vcat(1,p[iARG.pp],"Inf",ssD,"NaN")],'\t');
+		        p[pert.p] /= pert.d;
+            end
+        end
+        #Now this whole thing is going to be the non-feedback one
+        syst = mm.odeNF;
+        x = fn.Dyn(syst, p, ssR, 500.0, rtol);
+        try
+            if(any(isnan.(x)))
+                writedlm(outfile1, [vcat(0,p[iARG.pp],0,x,"NaN")],'\t');
+            end
+        catch
+            for i in 1:length(x.t)
+                writedlm(outfile1, [vcat(0,p[iARG.pp],x.t[i],x.u[i],"NaN")],'\t');
+            end
+            p[pert.p] *= pert.d;
+            x = fn.Dyn(syst, p, last(x.u), 95000.0, rtol);
+            try
+                if(any(isnan.(x)))
+                    writedlm(outfile1, [vcat(0,p[iARG.pp],500.0,x,"NaN")],'\t');
+                end
+            catch
+                for i in 1:length(x.t)
+                    writedlm(outfile1, [vcat(0,p[iARG.pp],x.t[i]+500.0,x.u[i],"NaN")],'\t');
+                end
+                ssD = fn.SS(syst, p, ssR, rtol)
+                writedlm(outfile1, [vcat(0,p[iARG.pp],"Inf",ssD,"NaN")],'\t');
+		        p[pert.p] /= pert.d;
+            end
+        end
+        #Needs to be homogenized into the Functions-Based structure that CoRa now has, job for later rn it has to work :p
+    end
 end
