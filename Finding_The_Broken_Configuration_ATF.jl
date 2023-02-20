@@ -6,15 +6,15 @@ using Distributions;
 
 Pkg.activate(".");		# Activate local environment (requiere '.toml' files)
 iARG = (mm = "ATFv2",  # Label for motif file
-ex = "1250Set1",      # Label for parameters file
+ex = "1250Set2",      # Label for parameters file
 pp = :mY,         # Label for perturbation type
 ax = :mY);    # Label for condition/environment
-a = readdlm("OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_1004.txt")
+a = readdlm("OUT_ExSSs_ATFv2_1250Set2_mY_mY_From_13.txt")
 last_index = floor(Int, a[size(a,1), 1]) 
 
 print(string(last_index, "\n"))
 
-pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set1.csv") # Core parameters
+pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set2.csv") # Core parameters
 mm = include(string("Library\\Md_",iARG.mm,".jl"));
 fn = include(string("Library\\FN_CoRa.jl"));
 include(string("InputFiles\\ARGS_",iARG.mm,"_Pert_",iARG.ex,".jl")) # Perturbation details
@@ -22,7 +22,7 @@ key_names = (:g, :mY, :gY, :mU, :gU, :mW, :gW, :e0, :eP, :eM, :mUs);
 x0 = zeros(length(mm.odeFB.syms));
 
 open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,"_LastLine.txt"), "w") do outfile1
-    r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
+    r = round.(10 .^ collect(pert.r[1]:pert.s:pert.r[2]), digits = 10);
     for i in last_index:pars.rows
         p = Dict();
         for h in 1:pars.cols

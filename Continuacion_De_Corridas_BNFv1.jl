@@ -4,10 +4,10 @@ using CSV;
 using DelimitedFiles;
 using Distributions;
 
-a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_810.txt")
+a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_1001.txt")
 start = floor(Int, a[size(a,1), 1]) + 1
 
-Pkg.activate(".");		# Activate local environment (requiere '.toml' files)
+Pkg.activate("C:\\Users\\ese_1\\.julia\\environments\\v1.8");		# Activate local environment (requiere '.toml' files)
 iARG = (mm = "BNFv1",  # Label for motif file
 ex = "1250Set1",      # Label for parameters file
 pp = :mY,         # Label for perturbation type
@@ -27,7 +27,7 @@ key_names = (:g, :mY, :gY, :mU, :kD, :gU, :b, :bs, :mUs);
 x0 = zeros(length(mm.odeFB.syms));
 open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax, "_From_", start, ".txt"), "w") do outfile1
     r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
-    writedlm(outfile1, [vcat(string("Row"), r)],'\t');
+    writedlm(outfile1, [vcat(string("Row"), round(r; digits = 10))],'\t');
     for i in start:pars.rows
         p = Dict();
         for h in 1:pars.cols

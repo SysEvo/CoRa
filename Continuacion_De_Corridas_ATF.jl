@@ -4,15 +4,15 @@ using CSV;
 using DelimitedFiles;
 using Distributions;
 
-a = readdlm("OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_1004.txt")
+a = readdlm("OUT_ExSSs_ATFv2_1250Set2_mY_mY_From_13.txt")
 start = floor(Int, a[size(a,1), 1]) + 1
 
 Pkg.activate(".");		# Activate local environment (requiere '.toml' files)
 iARG = (mm = "ATFv2",  # Label for motif file
-ex = "1250Set1",      # Label for parameters file
+ex = "1250Set2",      # Label for parameters file
 pp = :mY,         # Label for perturbation type
 ax = :mY);    # Label for condition/environment
-pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set1.csv") # Core parameters
+pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set2.csv") # Core parameters
 
 # print = "short"      # Flag for the output file including/excluding the steady states (Options: "short", "all")
 
@@ -27,7 +27,7 @@ key_names = (:g, :mY, :gY, :mU, :gU, :mW, :gW, :e0, :eP, :eM, :mUs);
 x0 = zeros(length(mm.odeFB.syms));
 open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax, "_From_", start, ".txt"), "w") do outfile1
     r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
-    writedlm(outfile1, [vcat(string("Row"), r)],'\t');
+    writedlm(outfile1, [vcat(string("Row"), round.(r, digits = 10))],'\t');
     for i in start:pars.rows
         p = Dict();
         for h in 1:pars.cols

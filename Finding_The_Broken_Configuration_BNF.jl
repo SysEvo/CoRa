@@ -4,12 +4,12 @@ using CSV;
 using DelimitedFiles;
 using Distributions;
 
-Pkg.activate(".");		# Activate local environment (requiere '.toml' files)
+Pkg.activate("C:\\Users\\ese_1\\.julia\\environments\\v1.8");		# Activate local environment (requiere '.toml' files)
 iARG = (mm = "BNFv1",  # Label for motif file
 ex = "1250Set1",      # Label for parameters file
 pp = :mY,         # Label for perturbation type
 ax = :mY);    # Label for condition/environment
-a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_898.txt")
+a = readdlm("OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_1001.txt")
 last_index = floor(Int, a[size(a,1), 1]) 
 
 print(string(last_index, "\n"))

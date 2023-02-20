@@ -24,17 +24,17 @@ library(data.table)
 ```
 
 ```{r, Defining_Functions}
-ATF_generate <- function(rows){
-  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+ATF_generate <- function(rows, c){
+  g <- 1 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
   mY <- rep(0.125, rows)
-  gY <- sample(seq(from = 0.01, to = 100, by = 0.001), rows)
-  mU <- sample(seq(from = 0.00125, to = 12.5, by = 0.000125), rows)
-  gU <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
-  mW <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
-  gW <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000005), rows)
-  e0 <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000005), rows)
-  eP <- sample(seq(from = 0.000375, to = 3.75, by = 0.0000375), rows)
-  eM <- sample(seq(from = 0.005, to = 50, by = 0.0005), rows)
+  gY <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  mU <- 1.25 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  gU <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  mW <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  gW <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  e0 <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  eP <- 3.75 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  eM <- 5 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
   mUs <- rep(NaN, rows)
   
   csv <- data.frame(g, mY, gY, mU, gU, mW, gW, e0, eP, eM, mUs)
@@ -42,15 +42,15 @@ ATF_generate <- function(rows){
   return(csv)
 }
 
-BNF_generate <- function(rows){
-  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+BNF_generate <- function(rows, c){
+  g <- 1 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
   mY <- rep(0.125, rows)
-  gY <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
-  mU <- sample(seq(from = 0.02, to = 200, by = 0.0002), rows)
-  kD <- sample(seq(from = 0.01, to = 100, by = 0.0001), rows)
-  gU <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
-  b <- sample(seq(from = 0.000108, to = 1.08, by = 0.000001), rows)
-  bs <- sample(seq(from = 0.001565, to = 15.65, by = 0.000005), rows)
+  gY <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  mU <- 2 * 10** sample(seq(from = (0 - c/2), to = (0 + c/2), by = 0.01), rows, replace = T)
+  kD <- 1 * 10** sample(seq(from = (0 - c/2), to = (0 + c/2), by = 0.01), rows, replace = T)
+  gU <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  b <- 1.08 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  bs <- 1.565 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
   mUs <- rep(NaN, rows)
   
   csv <- data.frame(g, mY, gY, mU, kD, gU, b, bs, mUs)
@@ -58,18 +58,18 @@ BNF_generate <- function(rows){
   return(csv)
 }
 
-BMF2_generate <- function(rows){
-  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+BMF2_generate <- function(rows, c){
+  g <- 1 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
   mY <- rep(0.125, rows)
-  gY <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
-  mA <- sample(seq(from = 0.00372, to = 37.2, by = 0.000001), rows)
-  kD <- sample(seq(from = 0.01, to = 100, by = 0.001), rows)
-  mB <- sample(seq(from = 0.00125, to = 12.5, by = 0.000001), rows)
-  mU <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
-  e0 <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
-  eP <- sample(seq(from = 0.0005, to = 5, by = 0.00001), rows)
-  bA <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
-  bI <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
+  gY <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  mA <- 3.72 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  kD <- 1 * 10** sample(seq(from = (-0 - c/2), to = (-0 + c/2), by = 0.01), rows, replace = T)
+  mB <- 1.25 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  mU <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  e0 <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  eP <- 5 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  bA <- 5 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  bI <- 5 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
   mAs <- rep(NaN, rows)
   
   csv <- data.frame(g, mY, gY, mA, kD, mB, mU, e0, eP, bA, bI, mAs)
@@ -77,35 +77,35 @@ BMF2_generate <- function(rows){
   return(csv)
 }
 
-BMF1_generate <- function(rows){
-  g <- sample(seq(from = 0.0001, to = 1, by = 0.00001), rows)
+BMF1_generate <- function(rows, c){
+  g <- 1 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
   mY <- rep(0.125, rows)
-  gY <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
-  mA <- sample(seq(from = 0.00372, to = 37.2, by = 0.000001), rows)
-  mB <- sample(seq(from = 0.00125, to = 12.5, by = 0.000001), rows)
-  mU <- sample(seq(from = 0.001, to = 10, by = 0.0001), rows)
-  eP <- sample(seq(from = 0.0005, to = 5, by = 0.00001), rows)
-  e0 <- sample(seq(from = 0.000001, to = 0.01, by = 0.0000001), rows)
-  bA <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
-  bI <- sample(seq(from = 0.005, to = 50, by = 0.0001), rows)
+  gY <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  mA <- 3.38 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  mB <- 1.25 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  mU <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  e0 <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  eP <- 5 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  bA <- 5 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  bI <- 5 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
   mBs <- rep(NaN, rows)
   
-  csv <- data.frame(g, mY, gY, mA, mB, mU, eP, e0, bA, bI, mBs)
+  csv <- data.frame(g, mY, gY, mA, mB, mU, e0, eP, bA, bI, mBs)
   
   return(csv)
 }
 
-FAD_generate <- function(rows){
-  g <- sample(seq(from = 0.001, to = .1, by = 0.00001), rows)
+FAD_generate <- function(rows, c){
+  g <- 1 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
   mY <- rep(0.125, rows)
-  gY <- sample(seq(from = 0.01, to = 1, by = 0.0001), rows)
-  mU <- sample(seq(from = 0.0125, to = 1.25, by = 0.00001), rows)
-  gU <- sample(seq(from = 0.005, to = .5, by = 0.0001), rows)
-  mW <- sample(seq(from = 0.074, to = 7.4, by = 0.0001), rows)
-  gW <- sample(seq(from = 0.00001, to = 0.001, by = 0.000001), rows)
-  e0 <- sample(seq(from = 0.00001, to = 0.001, by = 0.0000001), rows)
-  eP <- sample(seq(from = 0.00375, to = .375, by = 0.000001), rows)
-  eM <- sample(seq(from = 0.05, to = 5, by = 0.001), rows)
+  gY <- 1 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  mU <- 1.25 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  gU <- 5 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  mW <- 3.27 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
+  gW <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  e0 <- 1 * 10** sample(seq(from = (-4 - c/2), to = (-4 + c/2), by = 0.01), rows, replace = T)
+  eP <- 3.75 * 10** sample(seq(from = (-2 - c/2), to = (-2 + c/2), by = 0.01), rows, replace = T)
+  eM <- 5 * 10** sample(seq(from = (-1 - c/2), to = (-1 + c/2), by = 0.01), rows, replace = T)
   mUs <- rep(NaN, rows)
 
   csv <- data.frame(g, mY, gY, mU, gU, mW, gW, e0, eP, eM, mUs)
@@ -178,20 +178,20 @@ ErrorCheck <- function(ErrorMatrix, Epsi){
 ```
 
 ```{r, Creating_infile_ATF}
-set.seed(171299)
+set.seed(041219)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(ATF_generate(1250), file = "ARGS_ATFv2_Mass_Par_1250Set1.csv", row.names = FALSE)
+write.csv(ATF_generate(1250, 6), file = "ARGS_ATFv2_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_BNF}
 set.seed(041219)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(BNF_generate(1250), file = "ARGS_BNFv1_Mass_Par_1250Set1.csv", row.names = FALSE)
+write.csv(BNF_generate(1250, 6), file = "ARGS_BNFv1_Mass_Par_1250Set1.csv", row.names = FALSE)
 ```
 
 ```{r, Creating_infile_BMF2}
 set.seed(160396)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(BMF2_generate(50), file = "ARGS_BMFv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(BMF2_generate(1250, 0), file = "ARGS_BMFv2_Mass_Par_1250Set1.csv", row.names = FALSE)
 ```
 
 ```{r, Creating_infile_BMF1}
@@ -200,9 +200,9 @@ setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta 
 write.csv(BMF1_generate(50), file = "ARGS_BMFv1_Mass_Par_SmallSet.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_FAD}
-set.seed(160396)
+set.seed(050700)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(FAD_generate(50), file = "ARGS_FADv2_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(FAD_generate(50, 2), file = "ARGS_FADv1_Mass_Par_SmallSet.csv", row.names = FALSE)
 ```
 
 ```{r, Verifying_outfile}

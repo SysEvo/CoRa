@@ -19,7 +19,7 @@ key_names = (:g, :mY, :gY, :mU, :kD, :gU, :b, :bs, :mUs);
 x0 = zeros(length(mm.odeFB.syms));
 open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do outfile1
     r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
-    writedlm(outfile1, [vcat(string("Row"), r)],'\t');
+    writedlm(outfile1, [vcat(string("Row"), round(r; digits = 10))],'\t');
     for i in 1:pars.rows
         p = Dict();
         for h in 1:pars.cols
@@ -50,5 +50,6 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
         catch
         end
         writedlm(outfile1, [vcat(i, CoRa)],'\t');
+        print(string("Line ", i, " done! \n"))
     end
 end

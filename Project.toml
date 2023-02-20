@@ -8,3 +8,6 @@ Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 ParameterizedFunctions = "65888b18-ceab-5e60-b2b9-181511a3b968"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
+
+[extras]
+CPUSummary = "2a0fbf3d-bb9c-48f3-b0a9-814d99fd7ab9"

@@ -13,6 +13,7 @@ library(stringr)
 library(cluster)
 library(seriation)
 library(ggplot2)
+library(ggdendro)
 ```
 
 ```{r, functions}
@@ -52,7 +53,7 @@ colnames(CoRas) <- c(ATFv1Names, ATFv2Names, FADv1Names, FADv2Names)
 rm(ATFv1, ATFv2, FADv1, FADv2, ATFv1Names, ATFv2Names, FADv1Names, FADv2Names)
 ```
 
-```{r ATFv2_BNFv2_1250Set1}
+```{r ATFv2_BNFv1_BNFv2_1250Set1}
 ATFv2 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY.txt", header = T)
 ATFv2_71 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_71.txt", header = T)
 ATFv2_109 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_109.txt", header = T)
@@ -73,30 +74,69 @@ ATFv2_982 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_982.txt", he
 ATFv2_1004 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_1004.txt", header = T)
 ATFv2_1182 <- read.table(file = "OUT_ExSSs_ATFv2_1250Set1_mY_mY_From_1182.txt", header = T)
 ATFv2_Merged <- rbind(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625, ATFv2_664, ATFv2_719, ATFv2_856, ATFv2_859, ATFv2_904, ATFv2_936, ATFv2_947, ATFv2_979, ATFv2_982, ATFv2_1004, ATFv2_1182)
+BNFv1 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY.txt", header = T)
+BNFv1_From_22 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_22.txt", header = T)
+BNFv1_From_33 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_33.txt", header = T)
+BNFv1_From_51 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_51.txt", header = T)
+BNFv1_From_86 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_86.txt", header = T)
+BNFv1_From_103 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_103.txt", header = T)
+BNFv1_From_130 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_130.txt", header = T)
+BNFv1_From_147 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_147.txt", header = T)
+BNFv1_From_164 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_164.txt", header = T)
+BNFv1_From_197 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_197.txt", header = T)
+BNFv1_From_222 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_222.txt", header = T)
+BNFv1_From_243 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_243.txt", header = T)
+BNFv1_From_316 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_316.txt", header = T)
+BNFv1_From_335 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_335.txt", header = T)
+BNFv1_From_356 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_356.txt", header = T)
+BNFv1_From_365 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_365.txt", header = T)
+BNFv1_From_384 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_384.txt", header = T)
+BNFv1_From_403 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_403.txt", header = T)
+BNFv1_From_428 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_428.txt", header = T)
+BNFv1_From_447 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_447.txt", header = T)
+BNFv1_From_468 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_468.txt", header = T)
+BNFv1_From_471 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_471.txt", header = T)
+BNFv1_From_498 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_498.txt", header = T)
+BNFv1_From_499 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_499.txt", header = T)
+BNFv1_From_562 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_562.txt", header = T)
+BNFv1_From_651 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_651.txt", header = T)
+BNFv1_From_810 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_810.txt", header = T)
+BNFv1_From_898 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_898.txt", header = T)
+BNFv1_From_903 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_903.txt", header = T)
+BNFv1_From_920 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_920.txt", header = T)
+BNFv1_From_978 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_978.txt", header = T)
+BNFv1_From_993 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_993.txt", header = T)
+BNFv1_From_998 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_998.txt", header = T)
+BNFv1_From_1001 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_1001.txt", header = T)
+BNFv1_From_1197 <- read.table(file = "OUT_ExSSs_BNFv1_1250Set1_mY_mY_From_1197.txt", header = T)
+BNFv1.1_Merged <- rbind(BNFv1, BNFv1_From_22, BNFv1_From_33, BNFv1_From_51, BNFv1_From_86, BNFv1_From_103, BNFv1_From_130, BNFv1_From_147, BNFv1_From_164, BNFv1_From_197, BNFv1_From_222, BNFv1_From_243, BNFv1_From_316, BNFv1_From_335, BNFv1_From_356, BNFv1_From_365, BNFv1_From_384, BNFv1_From_403, BNFv1_From_428, BNFv1_From_447, BNFv1_From_468, BNFv1_From_471, BNFv1_From_498, BNFv1_From_499, BNFv1_From_562, BNFv1_From_651, BNFv1_From_810)
+BNFv1.2_Merged <- rbind(BNFv1_From_898, BNFv1_From_903, BNFv1_From_920, BNFv1_From_978, BNFv1_From_993, BNFv1_From_998, BNFv1_From_1001, BNFv1_From_1197)
 BNFv2 <- read.table(file = "OUT_ExSSs_BNFv2_1250Set1_mY_mY.txt", header = T)
-rm(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625, ATFv2_664, ATFv2_719, ATFv2_856, ATFv2_859, ATFv2_904, ATFv2_936, ATFv2_947, ATFv2_979, ATFv2_982, ATFv2_1004, ATFv2_1182)
+rm(ATFv2, ATFv2_71, ATFv2_109, ATFv2_285, ATFv2_373, ATFv2_426, ATFv2_503, ATFv2_625, ATFv2_664, ATFv2_719, ATFv2_856, ATFv2_859, ATFv2_904, ATFv2_936, ATFv2_947, ATFv2_979, ATFv2_982, ATFv2_1004, ATFv2_1182, BNFv1, BNFv1_From_22, BNFv1_From_33, BNFv1_From_51, BNFv1_From_86, BNFv1_From_103, BNFv1_From_130, BNFv1_From_147, BNFv1_From_164, BNFv1_From_197, BNFv1_From_222, BNFv1_From_243, BNFv1_From_316, BNFv1_From_335, BNFv1_From_356, BNFv1_From_365, BNFv1_From_384, BNFv1_From_403, BNFv1_From_428, BNFv1_From_447, BNFv1_From_468, BNFv1_From_471, BNFv1_From_498, BNFv1_From_499, BNFv1_From_562, BNFv1_From_651, BNFv1_From_810, BNFv1_From_898, BNFv1_From_903, BNFv1_From_920, BNFv1_From_978, BNFv1_From_993, BNFv1_From_998, BNFv1_From_1001, BNFv1_From_1197)
 ATFv2_Names <- paste0("ATFv2_", 1:nrow(ATFv2_Merged))
+BNFv1.1_Names <- paste0("BNFv1_", 1:nrow(BNFv1.1_Merged))
+BNFv1.2_Names <- paste0("BNFv1_", length(BNFv1.1_Names):nrow(BNFv1.2_Merged))
 BNFv2_Names <- paste0("BNFv2_", 1:nrow(BNFv2))
-CoRas <- as.data.frame(t(rbind(ATFv2_Merged[, 2:ncol(ATFv2_Merged)], BNFv2[, 2:ncol(BNFv2)])))
+CoRas <- as.data.frame(t(rbind(ATFv2_Merged[, 2:ncol(ATFv2_Merged)], BNFv1.1_Merged[, 2:ncol(BNFv1.1_Merged)], BNFv2[, 2:ncol(BNFv2)])))
 CoRas[CoRas > 1] <- NaN
-colnames(CoRas) <- c(ATFv2_Names, BNFv2_Names)
-rm(ATFv2_Merged, BNFv2, ATFv2_Names, BNFv2_Names)
+colnames(CoRas) <- c(ATFv2_Names, BNFv1_Merged, BNFv2_Names)
+rm(ATFv2_Merged, BNFv1_Merged, BNFv2, ATFv2_Names, BNFv1.1_Merged, BNFv1.2_Merged, BNFv1.1_Names, BNFv1.2_Names, BNFv2_Names)
 ```
 
 ```{r, calculation of AUTC}
-AUTC <- AUTC(CoRas)
+CalcAUTC <- AUTC(CoRas)
+colnames(CalcAUTC) <- colnames(CoRas)
+rownames(CalcAUTC) <- colnames(CalcAUTC)
 ```
 
 ```{r, MaxKCalc}
 set.seed(1337)
-colnames(AUTC) <- colnames(CoRas)
-rownames(AUTC) <- colnames(AUTC)
-Models <- unique(str_split_fixed(colnames(AUTC), "_", 2)[,1])
+Models <- unique(str_split_fixed(colnames(CalcAUTC), "_", 2)[,1])
 #We do this first sapply to obtain the indexes for which column and row have the same starting part of their name, which means they're an "IntraModelComparison"
-Indexes <- sapply(Models, function(M) grepl(paste0(M, "_"), colnames(AUTC)))
+Indexes <- sapply(Models, function(M) grepl(paste0(M, "_"), colnames(CalcAUTC)))
 #This line skips a step by doing 2 "lapply" nested. The inner one produces the partial tables with only data from a single Model being compared within itself. The second one feeds that partial table into the clusGap() function
 #While I could technically skip this variable assignation and write the whole line in the following one, in place of "ModelsKCalc", it's already hard enough to read as is.
-ModelsKCalc <- lapply(lapply(Models, function(M1) AUTC[Indexes[, M1], Indexes[, M1]]), function(M2) clusGap(M2, FUN = kmeans, nstart = 25, K.max = 15, B = 50))
+ModelsKCalc <- lapply(lapply(Models, function(M1) CalcAUTC[Indexes[, M1], Indexes[, M1]]), function(M2) clusGap(M2, FUN = kmeans, nstart = 25, K.max = 15, B = 50))
 names(ModelsKCalc) <- Models
 #The innermost sapply will calculate the function of maxSE with every possible metric. The second sapply does that, for every SE.factor we determined. The lapply makes it so it runs for every ModelsKCalc object, which is basically every Model
 MaxK <- sum(sapply(ModelsKCalc, function(Model) maxSE(Model$Tab[, "gap"], Model$Tab[, "SE.sim"], method = "firstSEmax", SE.factor = 1)))
@@ -104,23 +144,24 @@ MaxK
 ```
 
 ```{r, clustering_of_the_whole}
-WholeK <- clusGap(AUTC, FUN = kmeans, nstart = 25, K.max = MaxK, B = 50)
+WholeK <- clusGap(CalcAUTC, FUN = kmeans, nstart = 25, K.max = MaxK, B = 50)
 WholeK<- maxSE(WholeK$Tab[,"gap"], WholeK$Tab[, "SE.sim"], method = "firstSEmax", SE.factor = 1)
 ```
 
 ```{r, clustering_time}
-DissimMat <- AUTC
+DissimMat <- CalcAUTC
 
-pamAUTC <- pam(DissimMat, diss = T, k = MaxK)
-ClusterMaxK <- pamAUTC$clustering
-DissimMat <- DissimMat[names(sort(ClusterMaxK)), names(sort(ClusterMaxK))]
-MaxKdissplot <- ggdissplot(as.dist(DissimMat), labels = sort(ClusterMaxK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "darkorchid4", high = "white", na.value = "grey75") + ggtitle("Individual Model Clustering")
-
-pamAUTC <- pam(DissimMat, diss = T, k = WholeK)
-ClusterWholeK <- pamAUTC$clustering
-DissimMat <- DissimMat[names(sort(ClusterWholeK)), names(sort(ClusterWholeK))]
-WholeKdissplot <- ggdissplot(as.dist(DissimMat), labels = sort(ClusterWholeK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "darkorchid4", high = "white", na.value = "grey75") + ggtitle("AllxAll Clustering")
-
+pamAUTCMaxK <- pam(DissimMat, diss = T, k = MaxK)
+ClusterMaxK <- pamAUTCMaxK$clustering
+DissimMatMaxK <- DissimMat[names(sort(ClusterMaxK)), names(sort(ClusterMaxK))]
+MaxKdissplot <- ggdissplot(as.dist(DissimMatMaxK), labels = sort(ClusterMaxK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "midnightblue", high = "white", na.value = "grey75") + ggtitle("Individual Model Clustering")
+```
+```{r}
+DissimMat <- CalcAUTC
+pamAUTCWholeK <- pam(DissimMat, diss = T, k = WholeK)
+ClusterWholeK <- pamAUTCWholeK$clustering
+DissimMatWholeK <- DissimMat[names(sort(ClusterWholeK)), names(sort(ClusterWholeK))]
+WholeKdissplot <- ggdissplot(as.dist(DissimMatWholeK), labels = sort(ClusterWholeK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "midnightblue", high = "white", na.value = "grey75") + ggtitle("AllxAll Clustering")
 MaxKdissplot
 WholeKdissplot
 ```
@@ -130,13 +171,76 @@ ClusterGraphing <- function(data, ClusNum, Cluster, title){
   Partial = tidyr::gather(data[, names(Cluster[which(Cluster == ClusNum)])])
   Partial$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(data[, names(Cluster[which(Cluster == ClusNum)])]))
   b <- ggplot(data = Partial, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ggtitle(title)
-  b
+  b + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20))  
 }
 
-ClusterGraphing(CoRas, 11, ClusterWholeK, "Cluster 11 according to AllxAll Clustering")
+ClusterGraphing(CoRas, 5, ClusterMaxK, "Cluster 5 according to Intra-Motif Clustering")
+ClusterGraphing(CoRas, 5, ClusterWholeK, "Cluster 5 according to AllxAll Clustering")
 ```
 
-```{r Test Realm, eval=FALSE, include=FALSE}
+```{r Dendrogram}
+clustermedoids <- CalcAUTC[pamAUTCMaxK$medoids,pamAUTCMaxK$medoids]
+colnames(clustermedoids) <- paste0("Cluster ", pamAUTCMaxK$clustering[pamAUTCMaxK$medoids])
+rownames(clustermedoids) <- colnames(clustermedoids)
+dendro <- hclust(as.dist(clustermedoids), method = "average")
+ggdendrogram(dendro) + ggtitle("Signature Behaviours according to Intra-Motif Clustering") + theme(plot.title = element_text(size = 32))
 
+clustermedoids <- CalcAUTC[pamAUTCWholeK$medoids,pamAUTCWholeK$medoids]
+colnames(clustermedoids) <- paste0("Cluster ", pamAUTCWholeK$clustering[pamAUTCWholeK$medoids])
+rownames(clustermedoids) <- colnames(clustermedoids)
+dendro <- hclust(as.dist(clustermedoids), method = "average")
+ggdendrogram(dendro) + ggtitle("Signature Behaviours according to AllxAll Clustering") + theme(plot.title = element_text(size = 32))
 ```
 
+```{r Bootstrapping}
+subsample <- function(data, percentage = 25){
+  indexes <- sort(sample(1:nrow(data), round(nrow(data)/100 * percentage), replace = FALSE))
+  return(data[indexes, indexes])
+}
+
+subAUTC <- subsample(CalcAUTC, 75)
+subAUTC
+
+subModels <- unique(str_split_fixed(colnames(subAUTC), "_", 2)[,1])
+#We do this first sapply to obtain the indexes for which column and row have the same starting part of their name, which means they're an "IntraModelComparison"
+subIndexes <- sapply(subModels, function(M) grepl(paste0(M, "_"), colnames(subAUTC)))
+#This line skips a step by doing 2 "lapply" nested. The inner one produces the partial tables with only data from a single Model being compared within itself. The second one feeds that partial table into the clusGap() function
+#While I could technically skip this variable assignation and write the whole line in the following one, in place of "ModelsKCalc", it's already hard enough to read as is.
+subModelsKCalc <- lapply(lapply(subModels, function(M1) subAUTC[subIndexes[, M1], subIndexes[, M1]]), function(M2) clusGap(M2, FUN = kmeans, nstart = 25, K.max = 15, B = 50))
+names(ModelsKCalc) <- subModels
+#The innermost sapply will calculate the function of maxSE with every possible metric. The second sapply does that, for every SE.factor we determined. The lapply makes it so it runs for every ModelsKCalc object, which is basically every Model
+subMaxK <- sum(sapply(subModelsKCalc, function(Model) maxSE(Model$Tab[, "gap"], Model$Tab[, "SE.sim"], method = "firstSEmax", SE.factor = 1)))
+subMaxK
+
+subWholeK <- clusGap(subAUTC, FUN = kmeans, nstart = 25, K.max = MaxK, B = 50)
+subWholeK<- maxSE(subWholeK$Tab[,"gap"], subWholeK$Tab[, "SE.sim"], method = "firstSEmax", SE.factor = 1)
+
+subDissimMat <- subAUTC
+
+subpamAUTCMaxK <- pam(subDissimMat, diss = T, k = subMaxK)
+subClusterMaxK <- subpamAUTCMaxK$clustering
+subDissimMatMaxK <- subDissimMat[names(sort(subClusterMaxK)), names(sort(subClusterMaxK))]
+subMaxKdissplot <- ggdissplot(as.dist(subDissimMatMaxK), labels = sort(subClusterMaxK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "darkorchid4", high = "white", na.value = "grey75") + ggtitle("Individual Model Clustering, 75% Bootstrap")
+
+subpamAUTCWholeK <- pam(subDissimMat, diss = T, k = subWholeK)
+subClusterWholeK <- subpamAUTCWholeK$clustering
+subDissimMatWholeK <- subDissimMat[names(sort(subClusterWholeK)), names(sort(subClusterWholeK))]
+subWholeKdissplot <- ggdissplot(as.dist(subDissimMatWholeK), labels = sort(subClusterWholeK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "darkorchid4", high = "white", na.value = "grey75") + ggtitle("AllxAll Clustering, 75% Bootstrap")
+
+subMaxKdissplot
+subWholeKdissplot
+```
+
+```{r Bootstrapped Dendrogram}
+subclustermedoids1 <- CalcAUTC[subpamAUTCMaxK$medoids,subpamAUTCMaxK$medoids]
+colnames(subclustermedoids1) <- paste0("Cluster ", subpamAUTCMaxK$clustering[subpamAUTCMaxK$medoids])
+rownames(subclustermedoids1) <- colnames(subclustermedoids1)
+subdendro1 <- hclust(as.dist(subclustermedoids1), method = "average")
+ggdendrogram(subdendro1) + ggtitle("Signature Behaviours according to Intra-Motif Clustering")
+
+subclustermedoids2 <- CalcAUTC[subpamAUTCWholeK$medoids,subpamAUTCWholeK$medoids]
+colnames(subclustermedoids2) <- paste0("Cluster ", subpamAUTCWholeK$clustering[subpamAUTCWholeK$medoids])
+rownames(subclustermedoids2) <- colnames(subclustermedoids2)
+subdendro2 <- hclust(as.dist(subclustermedoids2), method = "average")
+ggdendrogram(subdendro2) + ggtitle("Signature Behaviours according to AllxAll Clustering")
+```
