@@ -1,44 +1,55 @@
-# Steady state & DY calculation functions
-
-# Julia v.1.1.1
+# CoRa related functions
+#	SS - Steady state function for a given system
+#	?
+#
+# Julia v.1.8
 
 module fn
 	# Required libraries
+	using DelimitedFiles
+	using Distributions
 	using DifferentialEquations
-	using Statistics
 
-	# Steady state function for a given system
+	# SS - Steady state function for a given system
 	# INPUT: syst - Handle for the ODE system (@ode_def)
 	#        p    - Dictionary function with the ODE parameters & values
 	#        x0   - Vector of initial state of the ODE system
 	#        rtol - Tolerance value for ODE solver
-	#        uns  - 1 to use a slower, more stable ODE solver
 	# OUPUT: ss   - Vector of steady state of the ODE system
-	function SS(syst, p, x0, rtol, uns)
-		pV = [p[i] for i in syst.params];
-		if (uns == 1)
-			s0 = x0;
-			t = 0.
-			while (any([abs(x) for x in syst(s0, pV, 0.)] .> (rtol * s0)) && t<1e6)
-				ss = solve(ODEProblem(syst,s0,10000.,pV),AutoTsit5(Rosenbrock23()),reltol=rtol);
-				t += 100.;
-				s0 = last(ss.u);
-				#println("Time: ",t,", ",s0)
-				end;
-			return s0
-		else
-			ss = solve(SteadyStateProblem(syst, x0, pV), SSRootfind());
-			# Verify this is the steady state:
-			if any(ss.u .< 0)
-				ss = solve(SteadyStateProblem(syst, x0, pV), DynamicSS(Rodas5(); reltol=rtol));
-				return ss.u
+	function SS(syst, p, x0, rtol)
+		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps];
+		tS = 0;
+		dXrm = 1;
+		while(dXrm > rtol)
+			ss = try
+				fn.solve(fn.ODEProblem(syst,x0,1e6,pV); reltol=rtol,save_everystep = false);
+			catch
+				try
+					fn.solve(fn.ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
+				catch err
+					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
+					x0 = zeros(length(syst.syms)).+NaN;
+					break
+				end
+			end;
+			if ss.retcode == :Unstable
+				try
+					ss = fn.solve(fn.ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
+				catch err
+					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
+					x0 = zeros(length(syst.syms)).+NaN;
+					break
+				end
 			end
-			if any([abs(x) for x in syst(ss.u, pV, 0.)] .> (rtol * ss.u))
-				ss = solve(SteadyStateProblem(syst, ss.u, pV), DynamicSS(Rodas5(); reltol=rtol));
-				return ss.u
+			dXrm = maximum(abs.(big.(ss(1e6))-big.(ss(1e6-0.01)))./big.(ss(1e6)));
+			x0 = ss(1e6);
+			tS += 1e6;
+			if(tS>1e12)
+				println("WARNING: Maximum iteration reached (simulated time 1e18). Max relative Delta: ",dXrm)
+				break
 			end
-			return ss.u
-			end
+		end
+		return x0
 	end;
 
 	# ODE dynamics for a given system
