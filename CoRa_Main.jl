@@ -11,14 +11,14 @@
 
 ## INPUTS:
 # iARG = (mm : Label for motif file, ex : Label for parameters file, pp : Label for perturbation type, an : Chose analysis type);
-include(string("InputFiles\\ARGS_",iARG.mm,"_Pert_",iARG.ex,".jl"))	# Perturbation details
-include(string("InputFiles\\ARGS_",iARG.mm,"_Par_",iARG.ex,".jl"))	# Core parameters
+include(string("InputFiles/ARGS_",iARG.mm,"_Pert_",iARG.ex,".jl"))	# Perturbation details
+include(string("InputFiles/ARGS_",iARG.mm,"_Par_",iARG.ex,".jl"))	# Core parameters
 
 # Load functions & parameters:
 using DelimitedFiles
 using Distributions
-mm = include(string("Library\\Md_",iARG.mm,".jl"));
-fn = include(string("Library\\FN_DYs.jl"));
+mm = include(string("Library/Md_",iARG.mm,".jl"));
+fn = include(string("Library/FN_CoRa.jl"));
 pO = copy(p);
 
 ## Run analysis
@@ -37,7 +37,7 @@ if(iARG.an=="ExSSs")
             soR = ones(length(mm.odeNF.syms));
             while(rtol >= 1e-24)
                 # Reference steady state:
-                ssR = fn.SS(mm.odeFB, p, ssR, rtol, uns);
+                ssR = fn.SS(mm.odeFB, p, ssR, rtol);
                 # Locally analogous system reference steady state:
                 mm.localNF(p,ssR);
                 soR = fn.SS(mm.odeNF, p, soR, rtol, uns);
@@ -125,7 +125,7 @@ elseif(iARG.an=="ExDyn")
 	end
 # Calculate CoRa curve for a range of parameters as another parameter varies:
 elseif(iARG.an=="DYms")
-	include(string("InputFiles\\ARGS_",iARG.mm,"_DYms_",iARG.ex,".jl"))	# Parameters to vary
+	include(string("InputFiles/ARGS_",iARG.mm,"_DYms_",iARG.ex,".jl"))	# Parameters to vary
 	open(string("OUT_DYms_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do io
 		writedlm(io, [vcat([string(i) for i in keys(pN)],10 .^ collect(pert.r[1]:pert.s:pert.r[2]))],'\t')
 		for pI = pN
@@ -140,7 +140,7 @@ elseif(iARG.an=="DYms")
 	end
 # Optimize CoRa curve for a range of parameters:
 elseif(iARG.an=="OptDY")
-	include(string("InputFiles\\ARGS_",iARG.mm,"_OptDY_",iARG.ex,".jl"))
+	include(string("InputFiles/ARGS_",iARG.mm,"_OptDY_",iARG.ex,".jl"))
 	open(string("OUT_OptDY_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do io
 		if(mrw.prtD==1)
 			writedlm(io, [vcat("Run","Iteration",[string(param) for param in mrw.pOp],string("|DY<=",pert.eps,"|"),"min(DY)",10 .^ collect(pert.r[1]:pert.s:pert.r[2]))], '\t')
