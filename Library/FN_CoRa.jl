@@ -13,43 +13,52 @@ module fn
 	# SS - Steady state function for a given system
 	# INPUT: syst - Handle for the ODE system (@ode_def)
 	#        p    - Dictionary function with the ODE parameters & values
-	#        x0   - Vector of initial state of the ODE system
+	#        x    - Vector of current state of the ODE system
 	#        rtol - Tolerance value for ODE solver
 	# OUPUT: ss   - Vector of steady state of the ODE system
-	function SS(syst, p, x0, rtol)
-		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps];
-		tS = 0;
-		dXrm = 1;
-		while(dXrm > rtol)
+	function SS(syst, p, x, rtol)
+		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps];	# Parameter values as a vector.
+		iS = 0;			# Accumulated simulation time.
+		dX = rtol + 1;	# Maximum relative change in the ODE simulation. (Note: arbitrary starting value).
+		# Simulate ODE system until the error tolerance is reached:
+		while(dX > rtol)
 			ss = try
-				fn.solve(fn.ODEProblem(syst,x0,1e6,pV); reltol=rtol,save_everystep = false);
+				# Try using standard ODE solver:
+				fn.solve(fn.ODEProblem(syst,x,1e6,pV); reltol=rtol, save_everystep = false);
 			catch
 				try
-					fn.solve(fn.ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
+					# Try using stiff ODE solver:
+					fn.solve(fn.ODEProblem(syst,x,1e6,pV), alg_hints=[:stiff]; reltol=rtol, save_everystep = false);
 				catch err
+					# If both failed, return an error message and NaN vextor:
 					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
-					x0 = zeros(length(syst.syms)).+NaN;
+					x = zeros(length(syst.syms)).+NaN;
 					break
 				end
 			end;
 			if ss.retcode == :Unstable
 				try
-					ss = fn.solve(fn.ODEProblem(syst,x0,1e6,pV),alg_hints=[:stiff]; reltol=rtol,save_everystep = false);
+					# If simulations were unstable, try using stiff ODE solver:
+					ss = fn.solve(fn.ODEProblem(syst,x,1e6,pV), alg_hints=[:stiff]; reltol=rtol, save_everystep = false);
 				catch err
+					# If this failed, return an error message and NaN vextor:
 					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
-					x0 = zeros(length(syst.syms)).+NaN;
+					x = zeros(length(syst.syms)).+NaN;
 					break
 				end
 			end
-			dXrm = maximum(abs.(big.(ss(1e6))-big.(ss(1e6-0.01)))./big.(ss(1e6)));
-			x0 = ss(1e6);
-			tS += 1e6;
-			if(tS>1e12)
-				println("WARNING: Maximum iteration reached (simulated time 1e18). Max relative Delta: ",dXrm)
+			# Calculate maximum relative change in the ODE simulation:
+			dX = maximum(abs.(big.(ss(1e6))-big.(ss(1e6-0.01)))./big.(ss(1e6)));
+			# Update vector of current state of the ODE system:
+			x = ss(1e6);
+			# Count iterations & stop if larger than:
+			iS += 1;
+			if(iS>10)
+				println("WARNING: Maximum iteration reached (10 times). Max relative Delta: ",dX)
 				break
 			end
 		end
-		return x0
+		return x
 	end;
 
 	# ODE dynamics for a given system
