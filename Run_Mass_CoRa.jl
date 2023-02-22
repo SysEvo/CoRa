@@ -10,5 +10,6 @@
        ax = :mY);    # Label for condition/environment
        pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set2.csv"); # Core parameters
        strict = true  # Should a steady state be found, and then refound in the next iteration, and this difference not be in accordance to the rtol given, said SS will be obtained regardless
-       gap_tol = 10 # This is how wide we accept gaps to be in lines
+       gap_size = 20 # This is the size of a region to be examined for NaN gaps
+       gap_tol = 0.5 # How much of the examined region can be NaNs before the program kills it
 	include("Mass_CoRa_Main_ATF.jl");

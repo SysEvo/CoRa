@@ -14,7 +14,8 @@ pp = :mY,         # Label for perturbation type
 ax = :mY);    # Label for condition/environment
 pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set2.csv") # Core parameters
 strict = true
-gap_tol = 10 # This is how wide we accept gaps to be in lines
+gap_size = 10 # This is the size of a region to be examined for NaN gaps
+gap_tol = 0.5 # How much of the examined region can be NaNs before the program kills it (proportion)
 # print = "short"      # Flag for the output file including/excluding the steady states (Options: "short", "all")
 
 #This includes the model to study itself, it must be prepared before running CoRa, with the explicit constraint that the number of d/dt are the same in the FB and NF equations
@@ -44,7 +45,7 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax, "_From_", 
         k = 1;
         try
             for k in 1:lastindex(r)
-                if ((k > 2*gap_tol) && ((sum(isnan.(CoRa[(k-2*gap_tol):k])))/(2*gap_tol)) >= 0.5)
+                if ((k > gap_size) && ((sum(isnan.(CoRa[(k-gap_size):k])))/(gap_size)) >= gap_tol)
                     println("Set", i, " has failed in", gap_tol, " out of ", gap_tol * 2, "continuous points, so it will no longer be computed")
                     CoRa = zeros(length(r)).+ NaN;
                     break
