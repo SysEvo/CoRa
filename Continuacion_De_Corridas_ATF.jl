@@ -14,6 +14,7 @@ pp = :mY,         # Label for perturbation type
 ax = :mY);    # Label for condition/environment
 pars = CSV.File("InputFiles\\ARGS_ATFv2_Mass_Par_1250Set2.csv") # Core parameters
 strict = true
+gap_tol = 10 # This is how wide we accept gaps to be in lines
 # print = "short"      # Flag for the output file including/excluding the steady states (Options: "short", "all")
 
 #This includes the model to study itself, it must be prepared before running CoRa, with the explicit constraint that the number of d/dt are the same in the FB and NF equations
@@ -43,12 +44,23 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax, "_From_", 
         k = 1;
         try
             for k in 1:lastindex(r)
-                ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-12 (arbitrarily)
+                if ((k > 2*gap_tol) && ((sum(isnan.(CoRa[(k-2*gap_tol):k])))/(2*gap_tol)) >= 0.5)
+                    println("Set", i, " has failed in", gap_tol, " out of ", gap_tol * 2, "continuous points, so it will no longer be computed")
+                    CoRa = zeros(length(r)).+ NaN;
+                    break
+                end
+                ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-10 (arbitrarily)
                 p[pert.c] *= r[k];
                 ###Up next, we must find the steady states of both ssR and soR, while also checking that the process itself didn't fail. Let's make that a single, "fn.SSandCheck()" function
-                ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-10, mm, strict)
+                ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-10, mm, strict, k)
+                if any(isnan.(ssR)) || any(isnan.(soR))
+                    continue
+                end
                 ###Now, we have to do the Perturbation itself!
-                ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert, strict)
+                ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert, strict, k)
+                if any(isnan.(ssD)) || any(isnan.(soD))
+                    continue
+                end
                 ###And we must return CoRa now, too
                 CoRa[k] = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD))
                 ###With everything done, it's time to output them into the file!

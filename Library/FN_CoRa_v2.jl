@@ -16,7 +16,7 @@ module fn
 	end
 
 	###Can't have a steady state & check function without the steady state and the checking, now can we?
-	function SS(syst, p, x0, rtol, strict, tag)
+	function SS(syst, p, x0, rtol, strict, tag, k)
 		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps]
 		tS = 0
 		dXrm = 1
@@ -46,7 +46,8 @@ module fn
 			end
 			tS += 1e6
 			if(tS>2e7)	
-				println("WARNING: Maximum iteration reached (simulated time 2d8). Max relative Delta: ",dXrm)
+				println("WARNING: Maximum iteration reached (simulated time 2e7). Returning NaN for k = ", k,". Max relative Delta: ",dXrm)
+				x0 = zeros(length(syst.syms)).+NaN
 				break
 			end
 		end
@@ -65,7 +66,7 @@ module fn
 
 	###Now we create the Check function!
 	function Check(ssR, soR, rtol, mm)
-		if(abs(mm.outFB(ssR) - mm.outNF(soR)) > 1e-4)
+		if(any.(isnan.(mm.outFB(ssR))) || any.(isnan.(mm.outFB(soR))) || (abs(mm.outFB(ssR) - mm.outNF(soR)) > 1e-4))
 			rtol *= 1e-3
 			if(rtol < 1e-24)
 				println("ERROR: Check NF system (reltol=",rtol,").")
@@ -82,36 +83,41 @@ module fn
 	end;
 
 	###Here it is, the SS&Check function. It will, of course, be built upon an SS() and a Check() funciton previously defined within this document
-	function SSandCheck(p, x0, rtol, mm, strict)
+	function SSandCheck(p, x0, rtol, mm, strict, k)
 		###The rtol value basically states that this will be attempted 5 times: This is because of the comparison made in "if(abs(mm.outFB(ssR) - mm.outNF(soR)) > 1e-4)". If that is successful
 		###Then the value of rtol is multiplied by 1e-3, until it is no longer greater or equal than 1e-24, as stated in our while() condition
 		flag = "Insufficient"
 		ssR, soR = fn.Restart(x0, x0)
 		while(rtol >= 1e-24 && flag == "Insufficient")
 			# Reference steady state:
-			ssR = fn.SS(mm.odeFB, p, x0, rtol, strict, "ssR")
+			ssR = fn.SS(mm.odeFB, p, x0, rtol, strict, "ssR", k)
 			if(fn.NaNCheck(ssR, soR) != "Valid")
-				println("Condition excluded! ssR --> NaN");
+				println("Condition excluded! ssR --> NaN")
 				break
 			end
 			# Locally analogous system reference steady state:
 			mm.localNF(p,ssR)
 			###Of note here, instead of using the initial condition x0, we use ssR.
-			soR = fn.SS(mm.odeNF, p, ssR, rtol, strict, "soR")
+			soR = fn.SS(mm.odeNF, p, ssR, rtol, strict, "soR", k)
 			if(fn.NaNCheck(soR, ssR) != "Valid")
 				println("Condition excluded! soR --> NaN")
-				break;
+				break
 			end
 			ssR, soR, rtol, flag = Check(ssR, soR, rtol, mm)
 		end
 		return ssR, soR, rtol
 	end
 
-	function Perturbation(ssR, soR, p, rtol, mm, pert, strict)
+	function Perturbation(ssR, soR, p, rtol, mm, pert, strict, k)
 		p[pert.p] *= pert.d
-		ssD = fn.SS(mm.odeFB, p, ssR, rtol, strict, "ssD")
-		soD = fn.SS(mm.odeNF, p, soR, rtol, strict, "soD")
+		ssD = fn.SS(mm.odeFB, p, ssR, rtol, strict, "ssD", k)
+		soD = fn.SS(mm.odeNF, p, soR, rtol, strict, "soD", k)
 		p[pert.p] /= pert.d
+		if(fn.NaNCheck(ssD, soD) != "Valid")
+			println("Condition excluded! ssD --> NaN")
+		elseif(fn.NaNCheck(soD, ssD) != "Valid")
+			println("Condition excluded! SoD --> NaN")
+		end
 		return ssD, soD
 	end
 
