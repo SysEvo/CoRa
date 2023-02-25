@@ -35,12 +35,23 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
         k = 1;
         try
             for k in 1:lastindex(r)
+                if ((k > gap_size) && ((sum(isnan.(CoRa[(k-gap_size):k])))/(gap_size)) >= gap_tol)
+                    println("Set", i, " has failed in", gap_size * gap_tol, " out of ", gap_size , "continuous points, so it will no longer be computed")
+                    CoRa = zeros(length(r)).+ NaN
+                    break
+                end
                 ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-12 (arbitrarily)
                 p[pert.c] *= r[k];
                 ###Up next, we must find the steady states of both ssR and soR, while also checking that the process itself didn't fail. Let's make that a single, "fn.SSandCheck()" function
-                ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-10, mm, strict)
+                ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-10, mm, strict, k)
+                if any(isnan.(ssR)) || any(isnan.(soR))
+                    continue
+                end
                 ###Now, we have to do the Perturbation itself!
-                ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert, strict)
+                ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert, strict, k)
+                if any(isnan.(ssD)) || any(isnan.(soD))
+                    continue
+                end
                 ###And we must return CoRa now, too
                 CoRa[k] = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD))
                 ###With everything done, it's time to output them into the file!

@@ -178,31 +178,31 @@ ErrorCheck <- function(ErrorMatrix, Epsi){
 ```
 
 ```{r, Creating_infile_ATF}
-set.seed(041219)
+set.seed(260399)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(ATF_generate(1250, 6), file = "ARGS_ATFv2_Mass_Par_1250Set2.csv", row.names = FALSE)
+write.csv(ATF_generate(1250, 6), file = "ARGS_ATFv1_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_BNF}
-set.seed(041219)
+set.seed(260399)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(BNF_generate(1250, 6), file = "ARGS_BNFv1_Mass_Par_1250Set1.csv", row.names = FALSE)
+write.csv(BNF_generate(1250, 6), file = "ARGS_BNFv1_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 
 ```{r, Creating_infile_BMF2}
 set.seed(160396)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(BMF2_generate(1250, 0), file = "ARGS_BMFv2_Mass_Par_1250Set1.csv", row.names = FALSE)
+write.csv(BMF2_generate(1250, 6), file = "ARGS_BMFv2_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 
 ```{r, Creating_infile_BMF1}
 set.seed(160396)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(BMF1_generate(50), file = "ARGS_BMFv1_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(BMF1_generate(1250, 6), file = "ARGS_BMFv1_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_FAD}
 set.seed(050700)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(FAD_generate(50, 2), file = "ARGS_FADv1_Mass_Par_SmallSet.csv", row.names = FALSE)
+write.csv(FAD_generate(1250, 6), file = "ARGS_FADv1_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 
 ```{r, Verifying_outfile}
