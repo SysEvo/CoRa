@@ -24,11 +24,13 @@ module fn
 		while(dX > rtol)
 			ss = try
 				# Try using standard ODE solver:
-				fn.solve(fn.ODEProblem(syst,x,1e6,pV); reltol=rtol, save_everystep = false);
+				fn.solve(fn.ODEProblem(syst,x,1e6,pV); reltol=rtol);
 			catch
+			end
+			if ss.retcode != :Success
 				try
 					# Try using stiff ODE solver:
-					fn.solve(fn.ODEProblem(syst,x,1e6,pV), alg_hints=[:stiff]; reltol=rtol, save_everystep = false);
+					ss = fn.solve(fn.ODEProblem(syst,x,1e6,pV), alg_hints=[:stiff]; reltol=rtol);
 				catch err
 					# If both failed, return an error message and NaN vextor:
 					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
@@ -36,17 +38,6 @@ module fn
 					break
 				end
 			end;
-			if ss.retcode == :Unstable
-				try
-					# If simulations were unstable, try using stiff ODE solver:
-					ss = fn.solve(fn.ODEProblem(syst,x,1e6,pV), alg_hints=[:stiff]; reltol=rtol, save_everystep = false);
-				catch err
-					# If this failed, return an error message and NaN vextor:
-					println("WARNING: Error in ODE simulation: <<",err,">>. ss --> NaN")
-					x = zeros(length(syst.syms)).+NaN;
-					break
-				end
-			end
 			# Calculate maximum relative change in the ODE simulation:
 			dX = maximum(abs.(big.(ss(1e6))-big.(ss(1e6-0.01)))./big.(ss(1e6)));
 			# Update vector of current state of the ODE system:
@@ -59,6 +50,30 @@ module fn
 			end
 		end
 		return x
+	end;
+
+	# Check - Check that the NF system is truly locally analogous to FB.¿
+	# INPUT: ssR  - Steady state of the feedback (reference) system
+	#        soR  - Steady state of the no-feedback (analogous) system
+	#        rtol - Tolerance value for ODE solver
+	#        syst - Handle for the ODE system (@ode_def)
+	# OUPUT: 
+	function Check(ssR, soR, rtol, syst)
+		if(any.(isnan.(syst.outFB(ssR))) || any.(isnan.(syst.outFB(soR))) || (abs(syst.outFB(ssR) - syst.outNF(soR)) > 1e-4))
+			rtol *= 1e-3
+			if(rtol < 1e-24)
+				println("ERROR: Check NF system (reltol=",rtol,").")
+				println(vcat(pert.p,i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],syst.outFB(ssR),syst.outNF(soR)))
+				if(abs(syst.outFB(ssR) - syst.outNF(soR))/syst.outFB(ssR) > 0.01)
+					ssR .+= NaN;
+					soR .+= NaN;
+					println("Error too large. SS results excluded!")
+				end
+			end
+			return ssR, soR, rtol, "Insufficient"
+		else
+			return ssR, soR, rtol, "Sufficient"
+		end
 	end;
 
 	# ODE dynamics for a given system

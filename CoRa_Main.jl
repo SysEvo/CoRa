@@ -1,7 +1,7 @@
 ## CoRa ANALYSIS
 #	Mariana Gómez-Schiavon
-#	July, 2019
-#		Julia v.1.1.1
+#	March, 2023
+#		Julia v.1.8
 #		Required libraries:
 #			DifferentialEquations
 #			ParameterizedFunctions
@@ -10,7 +10,8 @@
 #			DelimitedFiles
 
 ## INPUTS:
-# iARG = (mm : Label for motif file, ex : Label for parameters file, pp : Label for perturbation type, an : Chose analysis type);
+# iARG = (mm : Label for motif file, ex : Label for parameters file, 
+#   pp : Label for perturbation type, an : Chose analysis type);
 include(string("InputFiles/ARGS_",iARG.mm,"_Pert_",iARG.ex,".jl"))	# Perturbation details
 include(string("InputFiles/ARGS_",iARG.mm,"_Par_",iARG.ex,".jl"))	# Core parameters
 
@@ -26,43 +27,29 @@ pO = copy(p);
 if(iARG.an=="ExSSs")
 	p = copy(pO);
 	open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do io
-		writedlm(io, [vcat(iARG.ax,[string("FbR_",i) for i in mm.odeFB.syms],[string("FbD_",i) for i in mm.odeFB.syms],[string("NfR_",i) for i in mm.odeNF.syms],[string("NfD_",i) for i in mm.odeNF.syms],string("CoRa(",iARG.pp,")"))],'\t');
-		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
-        for i in 1:length(r)
-			rtol = 1e-12;
-			uns = 0;
-            p[pert.c] *= r[i];
-            flg1 = 1;
-            ssR = ones(length(mm.odeFB.syms));
-            soR = ones(length(mm.odeNF.syms));
-            while(rtol >= 1e-24)
-                # Reference steady state:
-                ssR = fn.SS(mm.odeFB, p, ssR, rtol);
-                # Locally analogous system reference steady state:
-                mm.localNF(p,ssR);
-                soR = fn.SS(mm.odeNF, p, soR, rtol, uns);
-                if(abs(mm.outFB(ssR) - mm.outNF(soR)) > 1e-4)
-                    rtol *= 1e-3;
-                    if(rtol < 1e-24)
-                        println("ERROR: Check NF system (reltol=",rtol*1e3,").")
-                        println(vcat(pert.p,i,[p[i] for i in mm.odeFB.params],mm.outFB(ssR),mm.outNF(soR)))
-                        #throw(DomainError("x-("))
-                        if(abs(mm.outFB(ssR) - mm.outNF(soR))/mm.outFB(ssR) > 0.01)
-                            flg1 = 0;
-                            println("SS results excluded!")
-                        end
-                    end
-                else
-                    break
-                end
-            end
-            # Perturbation:
-            p[pert.p] *= pert.d;
-            ssD = fn.SS(mm.odeFB, p, ssR, rtol, uns);
-            soD = fn.SS(mm.odeNF, p, soR, rtol, uns);
-            DYs = fn.DY(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD));
-            p[pert.p] /= pert.d;
+		# Generate headers for the data output:
+        writedlm(io, [vcat(iARG.ax,[string("FbR_",i) for i in mm.odeFB.syms],[string("FbD_",i) for i in mm.odeFB.syms],[string("NfR_",i) for i in mm.odeNF.syms],[string("NfD_",i) for i in mm.odeNF.syms],string("CoRa(",iARG.pp,")"))],'\t');
+		# Define the range of conditions to evaluate, as stated in 
+		#   the .*_Pert_.*.jl file:
+        r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
+        # For each condition:
+		for i in 1:length(r)
+			# Update condition by multiplying the choosen parameter 
+			#   by the corresponding value in our range of conditions:
+			p[pert.c] *= r[i];
+            # Find the steady state of the reference system (ssR), 
+			#   update the analogous system accordingly and find 
+			#   its steady state (soR), and finally confirm that 
+			#   both systems are locally analogous (ssR=soR):
+            ssR, soR, rtol = fn.SSandCheck(p, x0, 1e-12, mm)
+            # Perform the perturbation and find thesteady states 
+			#   for both systems:
+            ssD, soD = fn.Perturbation(ssR, soR, p, rtol, mm, pert)
+            # Calculate the resulting CoRa metric:
+            CoRa = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD))
+            # Print output:
             writedlm(io, [vcat(p[pert.c],ssR,ssD,soR,soD,DYs)],'\t');
+			# Reset condition to pre-perturbation state:
             p[pert.c] /= r[i];
         end
 	end
