@@ -148,6 +148,12 @@ module fn
 		return ssD, soD
 	end
 
+	# CoRa function
+	# INPUT: ssR  - Output of full system before perturbation
+	#        ssD  - Output of full system after perturbation
+	#        soR  - Output of non-feedback system before perturbation
+	#        soD  - Output of non-feedback system after perturbation
+	# OUPUT:      - CoRa value
 	function CoRa(ssR, ssD, soR, soD)
 		if abs(log10(soD/soR)) < 1e-4
 			return NaN
@@ -166,19 +172,6 @@ module fn
 		pV = [p[i] for i in syst.params];
 		xD = solve(ODEProblem(syst,x0,tspan,pV),AutoTsit5(Rosenbrock23()),reltol=1e-6);
 		return xD
-	end;
-
-	# DY function
-	# INPUT: Y    - Output of full system before perturbation
-	#        YD   - Output of full system after perturbation
-	#        Ynf  - Output of non-feedback system before perturbation (Ynf:=Y)
-	#        YnfD - Output of non-feedback system after perturbation
-	# OUPUT:      - DY value
-	function DY(Y,YD,Ynf,YnfD)
-		if abs(log10(YnfD/Ynf)) < 1e-4
-			return NaN
-		end
-		return log10(YD/Y)/log10(YnfD/Ynf);
 	end;
 
 	# DY curve
