@@ -87,8 +87,8 @@ elseif(iARG.an=="ExDyn")
 		p[pert.p] /= pert.d;
 	end
 # Calculate CoRa curve for a range of parameters as another parameter varies:
-elseif(iARG.an=="DYms")
-	include(string("InputFiles/ARGS_",iARG.mm,"_DYms_",iARG.ex,".jl"))	# Parameters to vary
+elseif(iARG.an=="CoRams")
+	include(string("InputFiles/ARGS_",iARG.mm,"_CoRams_",iARG.ex,".jl"))	# Parameters to vary
 	open(string("OUT_DYms_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w") do io
 		writedlm(io, [vcat([string(i) for i in keys(pN)],10 .^ collect(pert.r[1]:pert.s:pert.r[2]))],'\t')
 		for pI = pN
