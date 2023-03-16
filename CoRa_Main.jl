@@ -94,9 +94,9 @@ elseif(iARG.an=="CoRams")
 		for pI = pN
 			for i = pI[2]
 				p = copy(pO);
-				uns = 0;
 				p[pI[1]] *= (10. ^i);
-				writedlm(io, [vcat([p[i[1]] for i in pN],fn.DYc(p,pert,mm,uns))],'\t')
+				CoRas = fn.CoRac(p, pert, mm, x0);
+				writedlm(io, [vcat([p[j[1]] for j in pN], CoRas)],'\t')
 				p[pI[1]] /= (10. ^i);
 			end
 		end
