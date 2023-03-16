@@ -9,18 +9,17 @@
 #			Distributions
 #			DelimitedFiles
 
+# Load functions & parameters:
+using DelimitedFiles
+using Distributions
 ## INPUTS:
+mm = include(string("Library/Md_",iARG.mm,".jl"));
+fn = include(string("Library/FN_CoRa.jl"));
+pO = copy(p);
 # iARG = (mm : Label for motif file, ex : Label for parameters file, 
 #   pp : Label for perturbation type, an : Chose analysis type);
 include(string("InputFiles/ARGS_",iARG.mm,"_Pert_",iARG.ex,".jl"))	# Perturbation details
 include(string("InputFiles/ARGS_",iARG.mm,"_Par_",iARG.ex,".jl"))	# Core parameters
-
-# Load functions & parameters:
-using DelimitedFiles
-using Distributions
-mm = include(string("Library/Md_",iARG.mm,".jl"));
-fn = include(string("Library/FN_CoRa.jl"));
-pO = copy(p);
 
 ## Run analysis
 # Calculate CoRa curve for a range of parameters:

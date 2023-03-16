@@ -10,13 +10,35 @@ module fn
 	using Distributions
 	using DifferentialEquations
 
+	# AllNaN - Assign NaN values to output vectors
+	# INPUT: a,b - Vectors to turn into all NaN
+	# OUPUT: a,b - All NaN vectors
+	function AllNaN(a, b)
+		return a.+NaN, b.+NaN
+	end
+
+	# NaNCheck - Check for NaN values in the reference vector, and apply AllNan() 
+	#            in both vectors if any NaN is found.
+	# INPUT: a - Reference vector to be checked for NaN values
+	#		 b - Additional output vector to be turned in all NaN values
+	# OUPUT: a,b
+	function NaNCheck(a, b)
+		if(any(isnan.(a)))
+			a, b = fn.AllNaN(a, b);
+			return a, b
+		else
+			return "Valid"
+		end
+	end
+
 	# SS - Steady state function for a given system
 	# INPUT: syst - Handle for the ODE system (@ode_def)
 	#        p    - Dictionary function with the ODE parameters & values
-	#        x    - Vector of current state of the ODE system
+	#        x0   - Vector of initial state of the ODE system
 	#        rtol - Tolerance value for ODE solver
 	# OUPUT: ss   - Vector of steady state of the ODE system
-	function SS(syst, p, x, rtol)
+	function SS(syst, p, x0, rtol)
+		x = copy(x0);
 		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps];	# Parameter values as a vector.
 		iS = 0;			# Accumulated simulation time.
 		dX = rtol + 1;	# Maximum relative change in the ODE simulation. (Note: arbitrary starting value).
@@ -52,29 +74,87 @@ module fn
 		return x
 	end;
 
-	# Check - Check that the NF system is truly locally analogous to FB.¿
-	# INPUT: ssR  - Steady state of the feedback (reference) system
-	#        soR  - Steady state of the no-feedback (analogous) system
+	# Check - Check that the NF system is truly locally analogous to FB
+	# INPUT: ssFB - Steady state of the feedback (original) system
+	#        ssNF - Steady state of the no-feedback (analogous) system
 	#        rtol - Tolerance value for ODE solver
 	#        syst - Handle for the ODE system (@ode_def)
 	# OUPUT: 
-	function Check(ssR, soR, rtol, syst)
-		if(any.(isnan.(syst.outFB(ssR))) || any.(isnan.(syst.outFB(soR))) || (abs(syst.outFB(ssR) - syst.outNF(soR)) > 1e-4))
+	function Check(ssFB, ssNF, rtol, syst)
+		if(any.(isnan.(syst.outFB(ssFB))) || any.(isnan.(syst.outFB(ssNF))) || (abs(syst.outFB(ssFB) - syst.outNF(ssNF)) > 1e-4))
 			rtol *= 1e-3
 			if(rtol < 1e-24)
 				println("ERROR: Check NF system (reltol=",rtol,").")
-				println(vcat(pert.p,i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],syst.outFB(ssR),syst.outNF(soR)))
-				if(abs(syst.outFB(ssR) - syst.outNF(soR))/syst.outFB(ssR) > 0.01)
-					ssR .+= NaN;
-					soR .+= NaN;
+				println(vcat(pert.p,i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],syst.outFB(ssFB),syst.outNF(ssNF)))
+				if(abs(syst.outFB(ssFB) - syst.outNF(ssNF))/syst.outFB(ssFB) > 0.01)
+					ssFB, ssNF = AllNaN(ssFB, ssNF);
 					println("Error too large. SS results excluded!")
 				end
 			end
-			return ssR, soR, rtol, "Insufficient"
+			return ssFB, ssNF, rtol, "Insufficient"
 		else
-			return ssR, soR, rtol, "Sufficient"
+			return ssFB, ssNF, rtol, "Sufficient"
 		end
 	end;
+
+	# SSandCheck - Call SS() and Check() accordingly.
+	# INPUT: p    - Dictionary function with the ODE parameters & values
+	#        x0   - Vector of initial state of the ODE system
+	#        rtol - Initial tolerance value for ODE solver
+	#        syst - Handle for the ODE system (@ode_def)
+	# OUPUT: 
+	function SSandCheck(p, x0, rtol, syst)
+		flag = "Insufficient"
+		ssFB, ssNF = fn.AllNaN(x0, x0);
+		while(rtol >= 1e-24 && flag == "Insufficient")
+			# Reference steady state:
+			ssFB = fn.SS(syst.odeFB, p, x0, rtol);
+			if(fn.NaNCheck(ssFB, ssNF) != "Valid")
+				println("Condition excluded! ssFB --> NaN")
+				break
+			end
+			# Locally analogous system reference steady state:
+			syst.localNF(p,ssFB);
+			###Of note here, instead of using the initial condition x0, we use ssFB.
+			ssNF = fn.SS(syst.odeNF, p, ssFB, rtol);
+			if(fn.NaNCheck(ssNF, ssFB) != "Valid")
+				println("Condition excluded! ssNF --> NaN")
+				break
+			end
+			ssFB, ssNF, rtol, flag = Check(ssFB, ssNF, rtol, syst)
+		end
+		return ssFB, ssNF, rtol
+	end
+
+	# Perturbation - Apply perturbation and recalculate steady states
+	# INPUT: ssR  - Steady state of the feedback (original) system before perturbation (reference)
+	#        soR  - Steady state of the no-feedback (analogous) system before perturbation (reference)
+	#        p    - Dictionary function with the ODE parameters & values
+	#        rtol - Tolerance value for ODE solver
+	#        syst - Handle for the ODE system (@ode_def)
+	#        pert  - Handle for the perturbation details
+	# OUPUT: ssD  - Steady state of the feedback (original) system after perturbation (disturbed)
+	#        soD  - Steady state of the no-feedback (analogous) system after perturbation (disturbed)
+	function Perturbation(ssR, soR, p, rtol, mm, pert)
+		p[pert.p] *= pert.d;
+		ssD = fn.SS(mm.odeFB, p, ssR, rtol);
+		soD = fn.SS(mm.odeNF, p, soR, rtol);
+		p[pert.p] /= pert.d;
+		if(fn.NaNCheck(ssD, soD) != "Valid")
+			println("Condition excluded! ssD --> NaN")
+		elseif(fn.NaNCheck(soD, ssD) != "Valid")
+			println("Condition excluded! SoD --> NaN")
+		end
+		return ssD, soD
+	end
+
+	function CoRa(ssR, ssD, soR, soD)
+		if abs(log10(soD/soR)) < 1e-4
+			return NaN
+		end
+		return log10(ssD/ssR)/log10(soD/soR)
+	end
+
 
 	# ODE dynamics for a given system
 	# INPUT: syst - Handle for the ODE system (@ode_def)
