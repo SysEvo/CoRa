@@ -163,14 +163,28 @@ module fn
 
 
 	# ODE dynamics for a given system
-	# INPUT: syst - Handle for the ODE system (@ode_def)
-	#        p    - Dictionary function with the ODE parameters & values
-	#        x0   - Vector of initial state of the ODE system
-	#        tspan- Time to simulate
-	# OUPUT: xD   - Vector of steady state of the ODE system
+	# INPUT: syst  - Handle for the ODE system (@ode_def)
+	#        p     - Dictionary function with the ODE parameters & values
+	#        x0    - Vector of initial state of the ODE system
+	#        tspan - Time to simulate
+	# OUPUT: xD    - Vector of steady state of the ODE system
 	function Dyn(syst, p, x0, tspan)
-		pV = [p[i] for i in syst.params];
-		xD = solve(ODEProblem(syst,x0,tspan,pV),AutoTsit5(Rosenbrock23()),reltol=1e-6);
+		pV = [p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps];	# Parameter values as a vector.
+		xD = try
+			# Try using standard ODE solver:
+			fn.solve(fn.ODEProblem(syst,x0,tspan,pV); reltol=1e-6);
+		catch
+		end
+		if xD.retcode != :Success
+			try
+				# Try using stiff ODE solver:
+				ss = fn.solve(fn.ODEProblem(syst,x,1e6,pV), alg_hints=[:stiff]; reltol=rtol);
+			catch err
+				# If both failed, return an error message and NaN vextor:
+				println("WARNING: Error in ODE simulation: <<",err,">>. xD --> NaN")
+				xD = zeros(length(syst.syms)).+NaN;
+			end
+		end;
 		return xD
 	end;
 
