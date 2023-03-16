@@ -101,6 +101,7 @@ elseif(iARG.an=="CoRams")
 			end
 		end
 	end
+### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 # Optimize CoRa curve for a range of parameters:
 elseif(iARG.an=="OptDY")
 	include(string("InputFiles/ARGS_",iARG.mm,"_OptDY_",iARG.ex,".jl"))
@@ -200,6 +201,7 @@ elseif(iARG.an=="OptDY")
 			println("F: minDY = ",mi0,"\t |DY| = ",op0,"\n")
 		end
 	end
+### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 else
 	println("ERROR: Undetermined analysis. Options: ExSSs, ExDyn, DYms, OptDY")
 end

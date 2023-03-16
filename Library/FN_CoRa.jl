@@ -207,6 +207,7 @@ module fn
 		return CoRas
 	end;
 
+	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 	# DY "metrics"
 	# INPUT: DYs   - Vector of DY values for the range of parameters
 	#        pert  - Handle for the perturbation details
@@ -222,7 +223,9 @@ module fn
 		end
 		return [sum(DYs[i])./length(DYs[i]), pert.c * r[j[1]], pert.c * r[j[end]], minimum(x), r[argmin(x)]]
 	end;
+	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 
+	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 	# SSs for "optimal" control
 	# INPUT: p     - Dictionary function with the ODE parameters & values
 	#        pert  - Handle for the perturbation details
@@ -264,4 +267,5 @@ module fn
 		p[pert.p] /= r[argmin(x)];
 		return [vcat(p[pert.p] * r[argmin(x)],ssR,ssD,soR,soD)]
 	end;
+	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 end
