@@ -214,48 +214,4 @@ module fn
 	function CoRam(CoRas, pert)
 		return [sum(CoRas .<= pert.eps)/length(CoRas), minimum(filter(!isnan,CoRas))]
 	end;
-	
-	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
-	# SSs for "optimal" control
-	# INPUT: p     - Dictionary function with the ODE parameters & values
-	#        pert  - Handle for the perturbation details
-	#        motif - Handle for the considered motif
-	#        DYs   - Vector of DY values for the range of parameters
-	#        uns  - 1 to use a slower, more stable ODE solver
-	# OUPUT:       - [Optimal rho, steady state for the full system before & after perturbation, and for the non-feedback system before & after perturbation]
-	function SSopt(p, pert, motif, DYs, uns)
-		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
-		x = copy(DYs);
-		x[x .=== NaN] .= Inf;
-		p[pert.p] = pert.c;
-		p[pert.p] *= r[argmin(x)];
-			rtol = 1e-6;
-			ssR = zeros(length(motif.odeFB.syms));
-			soR = zeros(length(motif.odeNF.syms));
-			while(rtol >= 1e-24)
-				# Reference steady state:
-				ssR = SS(motif.odeFB, p, ssR, rtol, uns);
-				# Locally analogous system reference steady state:
-				motif.localNF(p,ssR);
-				soR = SS(motif.odeNF, p, soR, rtol, uns);
-				if(abs(motif.outFB(ssR) - motif.outNF(soR)) > 1e-4)
-					rtol *= 1e-3;
-					if(rtol < 1e-24)
-						println("ERROR: Check NF system (reltol=",rtol*1e3,").")
-						println(vcat(pert.p,i,[p[i] for i in motif.odeFB.params],motif.outFB(ssR),motif.outNF(soR)))
-						#throw(DomainError("x-("))
-					end
-				else
-					break
-				end
-			end
-			# Perturbation:
-			p[pert.p] *= pert.d;
-			ssD = SS(motif.odeFB, p, ssR, rtol, uns);
-			soD = SS(motif.odeNF, p, soR, rtol, uns);
-		p[pert.p] /= pert.d;
-		p[pert.p] /= r[argmin(x)];
-		return [vcat(p[pert.p] * r[argmin(x)],ssR,ssD,soR,soD)]
-	end;
-	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 end
