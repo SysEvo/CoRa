@@ -193,7 +193,7 @@ module fn
 	#        pert  - Handle for the perturbation details
 	#        motif - Handle for the considered motif
 	#        x0    - Vector of initial state of the ODE system
-	# OUPUT: CoRas   - Vector of DY values for the range of parameters
+	# OUPUT: CoRas - Vector of CoRa values for the range of parameters
 	function CoRac(p, pert, mm, x0)
 		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
 		CoRas = ones(length(r)) .+ Inf;
@@ -207,24 +207,14 @@ module fn
 		return CoRas
 	end;
 
-	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
-	# DY "metrics"
-	# INPUT: DYs   - Vector of DY values for the range of parameters
+	# CoRa "metrics"
+	# INPUT: CoRas - Vector of CoRa values for the range of parameters
 	#        pert  - Handle for the perturbation details
-	# OUPUT:       - [Range of DY<=eps,start,end,min(DY),optimal rho]
-	function DYm(DYs, pert)
-		r = 10 .^ collect(pert.r[1]:pert.s:pert.r[2]);
-		i = DYs .<= pert.eps;
-		j = findall(i);
-		x = copy(DYs);
-		x[x .=== NaN] .= Inf;
-		if isempty(j)
-			return [sum(DYs[i])./length(DYs[i]), NaN, NaN, minimum(x), r[argmin(x)]]
-		end
-		return [sum(DYs[i])./length(DYs[i]), pert.c * r[j[1]], pert.c * r[j[end]], minimum(x), r[argmin(x)]]
+	# OUPUT:       - [|CoRa<=eps|, min(CoRa)]
+	function CoRam(CoRas, pert)
+		return [sum(CoRas .<= pert.eps)/length(CoRas), minimum(filter(!isnan,CoRas))]
 	end;
-	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
-
+	
 	### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE ### OBSOLETE #
 	# SSs for "optimal" control
 	# INPUT: p     - Dictionary function with the ODE parameters & values

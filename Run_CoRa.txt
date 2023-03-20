@@ -4,5 +4,5 @@
 			ex = "Ex01",		# Label for parameters file
 			pp = :mY,			# Label for perturbation type
 			ax = :mY,			# Label for condition/environment
-			an = "CoRams");		# Chose analysis type (Options: ExSSs, ExDyn, CoRams, OptDY)
+			an = "OptCoRa");		# Chose analysis type (Options: ExSSs, ExDyn, CoRams, OptCoRa)
 	include("CoRa_Main.jl")
