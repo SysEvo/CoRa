@@ -113,66 +113,23 @@ elseif(iARG.an=="OptCoRa")
 		for ruN in 1:mrw.runs
 			println("RUN #",ruN)
 			p = copy(pO);
-			####### Uncomment the next three lines for random initial conditions: #######
-			#for i in 1:length(mrw.pOp)
-			#	p[mrw.pOp[i]] = 10 .^ (rand(Uniform(mrw.pMin[i], mrw.pMax[i])));
-			#end
-			#############################################################################
-			## Temperature function for simulated annealing:
-			if(mrw.temp==1)
-				mrwT = collect(mrw.iter:-1:1) ./ mrw.iter;
-			else
-				mrwT = ones(mrw.iter); # NOTE: For MRW, make T=1.
+			# If random initial parameters specified:
+			if(mrw.ranP==1)
+				fn.mrwR(mrw,p)
 			end
-			## Initialize system
-			CoRa0 = fn.CoRac(p,pert,mm,x0);  # Calculate CoRa curve
-			op0,mi0 = fn.CoRam(CoRa0,pert);  # Properties to optimize, proportion of CoRas<=eps and min(CoRas) value)
-			r0 = zeros(length(mrw.pOp));	 # Initialize vector of parameters to optimize
-			if(mrw.prtD==1)
+			# Initialize system:
+			CoRa0,op0,mi0 = fn.CoRam(p,pert,mm,x0); # Properties to optimize, proportion of CoRas<=eps and min(CoRas) value)
+			# Print initial state:
+			if(mrw.prtD==1)	# If printing full CoRa curve specified:
 				writedlm(io, [vcat(ruN,0,[p[i] for i in mrw.pOp],op0,mi0,CoRa0)],'\t')
-			else
+			else			# Else:
 				writedlm(io, [vcat(ruN,0,[p[i] for i in mrw.pOp],op0,mi0)],'\t')
 			end
 			# Optimization iterations
 			println("I: minCoRa = ",mi0,"\t |CoRa<eps| = ",op0)
 			for i in 1:mrw.iter
-				rI = rand(MvNormal(zeros(length(mrw.pOp)), zeros(length(mrw.pOp)) .+ mrw.cov)); # Random values to update parameters
-				for pI in 1:length(mrw.pOp)  # Update parameter values
-					r0[pI] = p[mrw.pOp[pI]]; # Save previous value
-					p[mrw.pOp[pI]] *= (mrw.M .^ rI[pI]); # Update value
-					# Exclude values outside regime of exploration:
-					if p[mrw.pOp[pI]] < (10.0 ^ mrw.pMin[pI])
-						p[mrw.pOp[pI]] = (10.0 ^ mrw.pMin[pI])
-					elseif p[mrw.pOp[pI]] > (10.0 ^ mrw.pMax[pI])
-						p[mrw.pOp[pI]] = (10.0 ^ mrw.pMax[pI])
-					end
-				end
-				CoRas = fn.CoRac(p,pert,mm,x0);  # Calculate new CoRa curve
-				op1,mi1 = fn.CoRam(CoRa0,pert);  # New values of properties to optimize, proportion of CoRas<=eps and min(CoRas) value)
-				# Evaluate if accept new parameter values or not:
-				## Only accept in the regime of interest, i.e. CoRa>=0:
-				c1 = (mi1>=0);
-				## If CoRa>eps for all conditions, evaluate the min(CoRa) for both sets:
-				### NOTE: As mi0,mi1=[0,1], correct exponential with the expected variance of ~U(0,1)
-					xiC = (mi0 ^ 2) / (2 * 0.083);
-					xiP = (mi1 ^ 2) / (2 * 0.083);
-				c2 = (minimum([op0,op1])==1.0) && (rand() < exp((xiC - xiP) / mrwT[i]));
-				## If CoRa>=eps for some conditions, evaluate the |CoRa<=eps| for both sets:
-				### NOTE: As op0,op1=[0,1], correct exponential with the expected variance of ~U(0,1)
-					xiC = ((1 - op0)^2) / (2 * 0.083);
-					xiP = ((1 - op1)^2) / (2 * 0.083);
-				c3 = rand() < exp((xiC - xiP) / mrwT[i]);
-				if(c1 && (c2 || c3))
-					# If yes, update "reference" system
-					op0 = op1;
-					mi0 = mi1;
-					CoRa0 = CoRas;
-				else
-					# If not, revert to previous parameter values
-					for pI in 1:length(mrw.pOp)
-						p[mrw.pOp[pI]] = r0[pI];
-					end
-				end
+				CoRa0,op0,mi0 = fn.mrwI(mrw,p,pert,mm,x0,CoRa0,op0,mi0);
+				# Print if "printing each walk step" or if last iteration:
 				if(mrw.prtW==1 || i==mrw.iter)
 					if(mrw.prtD==1)
 						writedlm(io, [vcat(ruN,i,[p[i] for i in mrw.pOp],op0,mi0,CoRa0)],'\t')
@@ -180,6 +137,7 @@ elseif(iARG.an=="OptCoRa")
 						writedlm(io, [vcat(ruN,i,[p[i] for i in mrw.pOp],op0,mi0)],'\t')
 					end
 				end
+				# End if optimal CoRa in all conditions and print final values:
 				if(op1==1.0)
 					println("Optimal value (|CoRa<=eps|=",op1,") reached at iteration ",i)
 					if(mrw.prtD==1)

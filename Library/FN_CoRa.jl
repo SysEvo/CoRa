@@ -191,7 +191,7 @@ module fn
 	# CoRa curve
 	# INPUT: p     - Dictionary function with the ODE parameters & values
 	#        pert  - Handle for the perturbation details
-	#        motif - Handle for the considered motif
+	#        mm    - Handle for the considered motif
 	#        x0    - Vector of initial state of the ODE system
 	# OUPUT: CoRas - Vector of CoRa values for the range of parameters
 	function CoRac(p, pert, mm, x0)
@@ -208,10 +208,80 @@ module fn
 	end;
 
 	# CoRa "metrics"
-	# INPUT: CoRas - Vector of CoRa values for the range of parameters
+	# INPUT: p     - Dictionary function with the ODE parameters & values
 	#        pert  - Handle for the perturbation details
-	# OUPUT:       - [|CoRa<=eps|, min(CoRa)]
-	function CoRam(CoRas, pert)
-		return [sum(CoRas .<= pert.eps)/length(CoRas), minimum(filter(!isnan,CoRas))]
+	#        mm    - Handle for the considered motif
+	#        x0    - Vector of initial state of the ODE system
+	# OUPUT: CoRas 		 - Vector of CoRa values for the range of parameters
+	#   	 |CoRa<=eps| - Proportion of the CoRas vector less or equal to eps
+	#		 min(CoRa)	 - Minimum CoRa value in CoRas
+	function CoRam(p,pert,mm,x0)
+		CoRas = fn.CoRac(p,pert,mm,x0);  # Calculate CoRa curve
+		return [CoRas,sum(CoRas .<= pert.eps)/length(CoRas), minimum(filter(!isnan,CoRas))]
+	end;
+
+	# MRW random initial parameters
+	# INPUT: mrw - Handle for the optimization (MRW) details
+	#        p   - Dictionary function with the ODE parameters & values
+	# OUPUT:     - Updated p
+	function mrwR(mrw,p)
+		for i in 1:length(mrw.pOp)
+			p[mrw.pOp[i]] = 10 .^ (rand(Uniform(mrw.pMin[i], mrw.pMax[i])));
+		end
+	end
+
+	# MRW iteration
+	# INPUT: mrw   - Handle for the optimization (MRW) details
+	#        p     - Dictionary function with the ODE parameters & values
+	#        pert  - Handle for the perturbation details
+	#        mm    - Handle for the considered motif
+	#        x0    - Vector of initial state of the ODE system
+	#		 CoRa0 - Vector of CoRa values for the range of parameters in reference system
+	#   	 op0   - Proportion of the CoRas vector less or equal to eps in reference system
+	#		 mi0   - Minimum CoRa value in CoRas in reference system
+	# OUPUT: CoRa0 - Vector of CoRa values for the range of parameters in updated reference system
+	#   	 op0   - Proportion of the CoRas vector less or equal to eps in updated reference system
+	#		 mi0   - Minimum CoRa value in CoRas in updated reference system
+	function mrwI(mrw,p,pert,mm,x0,CoRa0,op0,mi0)
+		# Choose new parameter values:
+		r0 = zeros(length(mrw.pOp));			# Vector of parameters to optimize in reference system
+		rI = rand(MvNormal(zeros(length(mrw.pOp)), zeros(length(mrw.pOp)) .+ mrw.cov)); # Random values to update parameters
+		for pI in 1:length(mrw.pOp)
+			r0[pI] = p[mrw.pOp[pI]];			 # Save previous value
+			p[mrw.pOp[pI]] *= (mrw.M .^ rI[pI]); # Update value
+			# Exclude values outside regime of exploration:
+			if p[mrw.pOp[pI]] < (10.0 ^ mrw.pMin[pI])
+				p[mrw.pOp[pI]] = (10.0 ^ mrw.pMin[pI])
+			elseif p[mrw.pOp[pI]] > (10.0 ^ mrw.pMax[pI])
+				p[mrw.pOp[pI]] = (10.0 ^ mrw.pMax[pI])
+			end
+		end
+		# Calculate new CoRa and metrics:
+		CoRa1,op1,mi1 = fn.CoRam(p,pert,mm,x0);  # New values of properties to optimize, proportion of CoRas<=eps and min(CoRas) value)
+		# Evaluate if accept new parameter values or not:
+		## Only accept in the regime of interest, i.e. CoRa>=0:
+		c1 = (mi1>=0);
+		## If CoRa>eps for all conditions, evaluate the min(CoRa) for both sets:
+		### NOTE: As mi0,mi1=[0,1], correct exponential with the expected variance of ~U(0,1)
+			xiC = (mi0 ^ 2) / (2 * 0.083);
+			xiP = (mi1 ^ 2) / (2 * 0.083);
+		c2 = (minimum([op0,op1])==1.0) && (rand() < exp(xiC - xiP));
+		## If CoRa>=eps for some conditions, evaluate the |CoRa<=eps| for both sets:
+		### NOTE: As op0,op1=[0,1], correct exponential with the expected variance of ~U(0,1)
+			xiC = ((1 - op0)^2) / (2 * 0.083);
+			xiP = ((1 - op1)^2) / (2 * 0.083);
+		c3 = rand() < exp(xiC - xiP);
+		if(c1 && (c2 || c3))
+			# If yes, update "reference" system
+			CoRa0 = CoRa1;
+			op0 = op1;
+			mi0 = mi1;
+		else
+			# If not, revert to previous parameter values
+			for pI in 1:length(mrw.pOp)
+				p[mrw.pOp[pI]] = r0[pI];
+			end
+		end
+		return CoRa0,op0,mi0
 	end;
 end
