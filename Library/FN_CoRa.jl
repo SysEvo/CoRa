@@ -1,6 +1,4 @@
 # CoRa related functions
-#	SS - Steady state function for a given system
-#	?
 #
 # Julia v.1.8
 
