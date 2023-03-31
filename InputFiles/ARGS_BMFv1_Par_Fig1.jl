@@ -10,7 +10,7 @@ p = Dict([
     :eP  => 0.05,      # U:W association (binding) rate (e.g. [0.0012,2000] 1/nM 1/min)
     :bA  => 0.5,       # U to Us transition rate (1/(nM min))
     :bI  => 0.5,       # U:W association (binding) rate (e.g. [0.0012,2000] 1/nM 1/min)
-    :mBs => NaN,       # LOCAL: B constitutive synthesis rate in the locally analogous system (mU*Yss)
+    :mBs => NaN,       # LOCAL: B constitutive synthesis rate in the locally analogous system (mB*Yss)
 ]);
 
 #Inital conditions
