@@ -1,7 +1,7 @@
 # Antithetic feedback (v01)
 #   with inactive W in complex form
 
-# Julia v.1.1.1
+# Julia v.1.8
 
 module mm
 	# Required libraries
