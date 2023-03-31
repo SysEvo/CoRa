@@ -1,7 +1,7 @@
 ## Running in julia terminal
 	#cd("C:\\MyLibrary\\Location\\")
 	using Pkg; Pkg.activate(".");
-	iARG = (mm = "BMFv2",		# Label for motif file
+	iARG = (mm = "BNFv1",		# Label for motif file
 			ex = "Fig1",		# Label for parameters file
 			pp = :mY,			# Label for perturbation type
 			ax = :mY,			# Label for condition/environment
