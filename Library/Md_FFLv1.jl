@@ -16,7 +16,7 @@ module mm
 	# ODE system without feedback
 	odeNF = @ode_def begin
 		dY  = (mY * (U + W))       - ((g + gY) * Y)
-		dU  =     mUs              - ((g + gU) * U)
+		dU  =    mUs               - ((g + gU) * U)
 		dW  = (mW * U)             - ((g + gW) * W)
 	end g mY gY mU kD gU mW gW mUs;
 
