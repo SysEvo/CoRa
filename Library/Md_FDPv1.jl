@@ -3,7 +3,7 @@
 #   W induces its own synthesis
 #   and inactive W in complex form
 
-# Julia v.1.1.1
+# Julia v.1.8
 
 module mm
 	# Required libraries
@@ -16,15 +16,14 @@ module mm
 		dU = (mU * Y)            - ((g + gU) * U) - (eP * U * W) + ((e0 + gW + eM) * C)
 		dW = (mW * (W/(W + kD))) - ((g + gW) * W) - (eP * U * W) + ((e0 + gU) * C)
 		dC =                     - ((g + eM) * C) + (eP * U * W) - ((gU + gW + e0) * C)
-	end g mY gY mU gU mW kD gW e0 eP eM mYs gYs;
+	end g mY gY mU gU mW kD gW e0 eP eM mUs;
 	# ODE system without feedback
 	odeNF = @ode_def begin
 		dY  = (mY * W)            - ((g + gY) * Y)
-		dU  = (mU * Ys)           - ((g + gU) * U) - (eP * U * W) + ((e0 + gW + eM) * C)
+		dU  =    mUs              - ((g + gU) * U) - (eP * U * W) + ((e0 + gW + eM) * C)
 		dW  = (mW * (W/(W + kD))) - ((g + gW) * W) - (eP * U * W) + ((e0 + gU) * C)
 		dC  =                     - ((g + eM) * C) + (eP * U * W) - ((gU + gW + e0) * C)
-		dYs =    mYs              - ((g + gYs) * Ys)
-	end g mY gY mU gU mW kD gW e0 eP eM mYs gYs;
+	end g mY gY mU gU mW kD gW e0 eP eM mUs;
 
 	# Define system's output (total Y):
 	function outFB(ss)
@@ -36,7 +35,6 @@ module mm
 
 	# Define locally analogous system:
 	function localNF(p,ss)
-		p[:mYs] = p[:mY] * ss[3];
-		p[:gYs] = p[:gY];
+		p[:mUs] = p[:mU] * ss[1];
 	end;
 end
