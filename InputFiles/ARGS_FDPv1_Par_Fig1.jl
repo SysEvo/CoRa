@@ -15,4 +15,4 @@ p = Dict([
 ]);
 
 #Inital conditions
-x0 = zeros(length(mm.odeFB.syms));
+x0 = zeros(length(mm.odeFB.syms)).+0.1;
