@@ -4,7 +4,7 @@
 clear
 
 %% All panels
-motifs = {'ATFv1','ATFv2','FADv1','FADv2','BNFv1','BNFv2','FFLv1','BMFv1','BMFv2'}; %'FDPv1','FDPv2',
+motifs = {'ATFv1','ATFv2','FADv1','FADv2','BNFv1','BNFv2','FDPv1','FDPv2','FFLv1','BMFv1','BMFv2'};
 for m = 1:length(motifs)
     load(cat(2,'DATA_CoRams_',motifs{m},'_Fig1_mY_mY.mat'))
 

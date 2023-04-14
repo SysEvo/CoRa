@@ -5,7 +5,7 @@
 % March 2023
 
 clear;
-motifs = {'ATFv1','ATFv2','FADv1','FADv2','BNFv1','BNFv2','FFLv1','BMFv1','BMFv2'}; %'FDPv1','FDPv2',
+motifs = {'ATFv1','ATFv2','FADv1','FADv2','BNFv1','BNFv2','FDPv1','FDPv2','FFLv1','BMFv1','BMFv2'};
 save Temp.mat
 for m = 1:length(motifs)
     load Temp.mat
