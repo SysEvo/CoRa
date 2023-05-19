@@ -17,13 +17,13 @@ for m = 1:length(motifs)
         pp = fieldnames(p); pp = pp{1};
         pN = regexprep(pp,'^m','\\mu_'); pN = regexprep(pN,'^g','\\gamma_'); pN = regexprep(pN,'^e','\\eta_'); pN = regexprep(pN,'_P','_+'); pN = regexprep(pN,'_M','_-');pN = regexprep(pN,'^b','\\beta_');pN = regexprep(pN,'kD','K_D');pN = regexprep(pN,'_$','');pN = regexprep(pN,'_Us','_\{Us\}');
         rhoN = regexprep(rho.name,'^m','\\mu_'); rhoN = regexprep(rhoN,'^g','\\gamma_'); rhoN = regexprep(rhoN,'^e','\\eta_'); rhoN = regexprep(rhoN,'_P','_+'); rhoN = regexprep(rhoN,'_M','_-');rhoN = regexprep(rhoN,'^b','\\beta_');rhoN = regexprep(rhoN,'kD','K_D');rhoN = regexprep(rhoN,'_$','');rhoN = regexprep(rhoN,'_Us','_\{Us\}');
-        for j = 1:7
+        for j = 2:6 %1:7
             plot(rho.values,CoRas(j,:),'DisplayName','CoRa(\mu_Y)',...
                 'LineWidth',3,'Color',C(1+((j-1)*10),:))
         end
             xlabel('Y synthesis rate (\mu_Y)','FontSize',12)
             xlim([0.001 1000])
-            ylabel('CoRa_{\mu_Y\in\Theta}(\mu_Y)','FontSize',12)
+            ylabel('CoRa_{\Theta}(Y,\mu_Y)','FontSize',12)
             ylim([0 1])
             if(strcmp(pp,'mW'))
                 title('Changing W synthesis rate','FontSize',12)
