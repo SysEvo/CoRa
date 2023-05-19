@@ -1,7 +1,7 @@
 %%                 CoRa ANALYSIS                  %%
 %%% DATA: Import output files from  CoRa_Main.jl %%%
 %%%       to Matlab to generate figures.         %%%
-% Mariana Gómez-Schiavon
+% Mariana GÃ³mez-Schiavon
 % March 2023
 
 clear;
@@ -87,7 +87,7 @@ for m = 1:length(motifs)
     end
     save(cat(2,'DATA_',sim.an,'_',sim.mm,'_',sim.ex,'_',sim.pp,'_',sim.ax,'.mat'))
     delete(cat(2,'OUT_',sim.an,'_',sim.mm,'_',sim.ex,'_',sim.pp,'_',sim.ax,'.txt'))
-    clear
+    clear sim
 end
 delete Temp.mat
 
