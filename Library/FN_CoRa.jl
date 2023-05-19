@@ -62,6 +62,11 @@ module fn
 			dX = maximum(abs.(big.(ss(1e6))-big.(ss(1e6-0.01)))./big.(ss(1e6)));
 			# Update vector of current state of the ODE system:
 			x = ss(1e6);
+			if(any(x.<0))
+				println("WARNING: Error in ODE simulation (negative values obtained). ss --> NaN")
+				x = zeros(length(syst.syms)).+NaN;
+				break
+			end
 			# Count iterations & stop if larger than:
 			iS += 1;
 			if(iS>10)
