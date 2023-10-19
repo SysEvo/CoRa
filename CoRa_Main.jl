@@ -138,7 +138,7 @@ elseif(iARG.an=="OptCoRa")
 					end
 				end
 				# End if optimal CoRa in all conditions and print final values:
-				if(op1==1.0)
+				if(op0==1.0)
 					println("Optimal value (|CoRa<=eps|=",op1,") reached at iteration ",i)
 					if(mrw.prtD==1)
 						writedlm(io, [vcat(ruN,i,[p[i] for i in mrw.pOp],op0,mi0,CoRa0)],'\t')
