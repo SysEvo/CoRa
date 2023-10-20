@@ -86,7 +86,7 @@ module fn
 	function Check(ssFB, ssNF, rtol, syst)
 		if(any.(isnan.(syst.outFB(ssFB))) || any.(isnan.(syst.outFB(ssNF))) || (abs(syst.outFB(ssFB) - syst.outNF(ssNF)) > 1e-4))
 			rtol *= 1e-3
-			if(rtol < 1e-24)
+			if(rtol < 1e-12)
 				println("ERROR: Check NF system (reltol=",rtol,").")
 				#println(vcat(i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],syst.outFB(ssFB),syst.outNF(ssNF)))
 				if(abs(syst.outFB(ssFB) - syst.outNF(ssNF))/syst.outFB(ssFB) > 0.01)
