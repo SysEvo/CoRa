@@ -88,7 +88,7 @@ module fn
 			rtol *= 1e-3
 			if(rtol < 1e-24)
 				println("ERROR: Check NF system (reltol=",rtol,").")
-				println(vcat(i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],syst.outFB(ssFB),syst.outNF(ssNF)))
+				#println(vcat(i,[p[eval(Meta.parse(string(":",i)))] for i in syst.sys.ps],syst.outFB(ssFB),syst.outNF(ssNF)))
 				if(abs(syst.outFB(ssFB) - syst.outNF(ssNF))/syst.outFB(ssFB) > 0.01)
 					ssFB, ssNF = AllNaN(ssFB, ssNF);
 					println("Error too large. SS results excluded!")
