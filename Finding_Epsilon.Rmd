@@ -200,9 +200,9 @@ setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta 
 write.csv(BMF1_generate(1250, 6), file = "ARGS_BMFv1_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 ```{r, Creating_infile_FAD}
-set.seed(050700)
+set.seed(230599)
 setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/InputFiles/") #Cambiar a carpeta relevante dependiendo de computadora
-write.csv(FAD_generate(1250, 6), file = "ARGS_FADv1_Mass_Par_1250Set2.csv", row.names = FALSE)
+write.csv(FAD_generate(1250, 6), file = "ARGS_FADv2_Mass_Par_1250Set2.csv", row.names = FALSE)
 ```
 
 ```{r, Verifying_outfile}
