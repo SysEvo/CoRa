@@ -40,6 +40,8 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
                     CoRa = zeros(length(r)).+ NaN
                     break
                 end
+                ###We reset our perturbation for the next run of the loop
+                p[pert.c] = p0[pert.c];
                 ###The parameter to change is multiplied by the corresponding value in our steps collection, and the error tolerance is set to 1e-12 (arbitrarily)
                 p[pert.c] *= r[k];
                 ###Up next, we must find the steady states of both ssR and soR, while also checking that the process itself didn't fail. Let's make that a single, "fn.SSandCheck()" function
@@ -56,8 +58,6 @@ open(string("OUT_ExSSs_",iARG.mm,"_",iARG.ex,"_",iARG.pp,"_",iARG.ax,".txt"), "w
                 CoRa[k] = fn.CoRa(mm.outFB(ssR), mm.outFB(ssD), mm.outNF(soR), mm.outNF(soD))
                 ###With everything done, it's time to output them into the file!
                 ###Check this one out
-                ###And we reset our perturbation for the next run of the loop
-                p[pert.c] = p0[pert.c];
             end
         catch
         end
