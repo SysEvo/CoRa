@@ -1,0 +1,199 @@
+---
+title: "Groups of groups"
+output: html_document
+date: "2023-12-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(stringr)
+library(cluster)
+library(ggplot2)
+library(ggdendro)
+library(seriation)
+library(dplyr)
+```
+
+```{r set_WD}
+setwd("C:/Users/ese_1/OneDrive/Escritorio/CoRa")
+```
+
+```{r loading pam objects}
+setwd("D:/CoRa")
+Maxkr10pam <- readRDS("./pamRDSs/pamAUTCMaxK_10.RDS")
+Wholekr10pam <- readRDS("./pamRDSs/pamAUTCWholeK_10.RDS")
+Maxkr9pam <- readRDS("./pamRDSs/pamAUTCMaxK_9.RDS")
+Wholekr9pam <- readRDS("./pamRDSs/pamAUTCWholeK_9.RDS")
+Maxkr6pam <- readRDS("./pamRDSs/pamAUTCMaxK_6.RDS")
+Wholekr6pam <- readRDS("./pamRDSs/pamAUTCWholeK_6.RDS")
+Maxkr5pam <- readRDS("./pamRDSs/pamAUTCMaxK_5.RDS")
+Wholekr5pam <- readRDS("./pamRDSs/pamAUTCWholeK_5.RDS")
+Maxkr3pam <- readRDS("./pamRDSs/pamAUTCMaxK_3.RDS")
+Wholekr3pam <- readRDS("./pamRDSs/pamAUTCWholeK_3.RDS")
+Maxkr1pam <- pamAUTCMaxK
+Wholekr1pam <- pamAUTCWholeK
+```
+
+```{r obtaining medoids}
+r10medoids <- Wholekr10pam$medoids
+r9medoids <- Wholekr9pam$medoids
+r6medoids <- Wholekr6pam$medoids
+r5medoids <- Wholekr5pam$medoids
+r3medoids <- Wholekr3pam$medoids
+r1medoids <- Wholekr1pam$medoids
+
+Allmedoids <- c(r1medoids, r3medoids, r5medoids, r6medoids, r9medoids, r10medoids)
+Allmedoids
+
+medoidmat <- matrix(0, nrow = length(Allmedoids), ncol = length(Allmedoids))
+colnames(medoidmat) <- rownames(medoidmat) <- Allmedoids
+
+medoidmat <- sapply(colnames(medoidmat), function(col){
+  sapply(rownames(medoidmat), function(row){
+    medoidmat[row, col] <- DissimMat[row, col]
+  })
+})
+medoidmat
+informativenames <- c(paste0("R1Cluster", 1:length(r1medoids)), paste0("R3Cluster", 1:length(r3medoids)), paste0("R5Cluster", 1:length(r5medoids)), paste0("R6Cluster", 1:length(r6medoids)), paste0("R9Cluster", 1:length(r9medoids)), paste0("R10Cluster", 1:length(r10medoids)))
+
+colnames(medoidmat) <- rownames(medoidmat) <- informativenames
+
+medoidmat
+```
+
+```{r unreadable dendrogram}
+dendro <- hclust(as.dist(medoidmat), method = "average")
+ggdendrogram(dendro) + ggtitle("Comparison of all repetitions' cluster medoids") + theme(plot.title = element_text(size = 32))
+```
+
+```{r finding a good maxdist}
+maxdist <- 60
+plot(dendro)
+a <- rect.hclust(dendro, h = maxdist)
+```
+
+```{r}
+RepetitionAndClusterGraphing <- function(data, name){
+  Repetition <- str_extract(name, regex("[0-9]+"))
+  Cluster <- str_extract(name, regex("[0-9]+$"))
+  if(Repetition == "1"){
+    ClusterGraphing(data, Cluster, Wholekr1pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+  }else if(Repetition == "3"){
+    ClusterGraphing(data, Cluster, Wholekr3pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+  }else if(Repetition == "5"){
+    ClusterGraphing(data, Cluster, Wholekr5pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+  }else if(Repetition == "6"){
+    ClusterGraphing(data, Cluster, Wholekr6pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+  }else if(Repetition == "9"){
+    ClusterGraphing(data, Cluster, Wholekr9pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+  }else{
+    ClusterGraphing(data, Cluster, Wholekr10pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+  }
+}
+
+clusqrGraphing <- function(data, clusqr){
+  temp <- list()
+  index <- 1
+  for(i in clusqr){
+    temp[[index]] <- RepetitionAndClusterGraphing(CoRas, i)
+    index <- index + 1
+  }
+  return(temp)
+}
+
+megafunction <- function(data, clusqrlist){
+  temp <- list()
+  index <- 1
+  for(i in clusqrlist){
+    temp[[index]] <- clusqrGraphing(data, names(i))
+    index <- index + 1
+  }
+  return(temp)
+}
+
+clustergraphslist <- megafunction(CoRas, a)
+```
+
+```{r}
+clustergraphslist[[2]]
+```
+
+```{r Distilling the Signature Behaviour}
+sigbeh <- function(values){
+  signaturebehaviour <- apply(values, 1, function(a){mean(a, na.rm = TRUE)})
+  return(signaturebehaviour)
+}
+
+ClusterClusterGraphing <- function(data, names, sigbehplotting, title){
+  Partial = tidyr::gather(subset(data, select = names))
+  Partial$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(subset(data, select = names)))
+  Sigbeh <- data.frame(sigbehplotting, seq(from = 0, to = 0.01, by = 1/60000))
+  colnames(Sigbeh) <- c("value", "step")
+  b <- ggplot(data = Partial, aes(x = step, y = value, col = key)) + geom_line(size = 1.5, alpha = 0.35) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ggtitle(title)
+  b + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
+  b + geom_line(data = Sigbeh, aes(x = step, y = value), col = "black", size = 1.5)
+}
+
+sigbehgraph <- function(data, names, title){
+  temp <- c()
+  for(i in names){
+    Repetition <- str_extract(i, regex("[0-9]+"))
+    Cluster <- str_extract(i, regex("[0-9]+$"))
+    if(Repetition == "1"){
+      temp <- append(temp, names(Wholekr1pam$clustering[which(Wholekr1pam$clustering == Cluster)]))
+    }else if(Repetition == "3"){
+      temp <- append(temp, names(Wholekr3pam$clustering[which(Wholekr3pam$clustering == Cluster)]))
+    }else if(Repetition == "5"){
+      temp <- append(temp, names(Wholekr5pam$clustering[which(Wholekr5pam$clustering == Cluster)]))
+    }else if(Repetition == "6"){
+      temp <- append(temp, names(Wholekr6pam$clustering[which(Wholekr6pam$clustering == Cluster)]))
+    }else if(Repetition == "9"){
+      temp <- append(temp, names(Wholekr9pam$clustering[which(Wholekr9pam$clustering == Cluster)]))
+    }else{
+      temp <- append(temp, names(Wholekr10pam$clustering[which(Wholekr10pam$clustering == Cluster)]))
+    }
+  }
+  sigbeh <- sigbeh(subset(data, select = temp))
+  
+  percent <- round((length(temp) / (ncol(CoRas) * 6) * 100), digits = 3)
+  
+  ClusterClusterGraphing(data, temp, sigbeh, paste0(title, ". ", percent, "% of curves"))
+}
+
+signaturebehaviours <- function(data, list){
+  temp <- list()
+  for(i in 1:length(list)){
+    temp[[i]] <- sigbehgraph(data, names(list[[i]]), paste0("Signature Behaviour of C.Cluster ", i))
+  }
+  return(temp)
+}
+
+sigbehgraphs <- signaturebehaviours(CoRas, a)
+```
+
+```{r showcase}
+sigbehgraphs[[1]]
+sigbehgraphs[[2]]
+sigbehgraphs[[3]]
+sigbehgraphs[[4]]
+sigbehgraphs[[5]]
+sigbehgraphs[[6]]
+sigbehgraphs[[7]]
+sigbehgraphs[[8]]
+sigbehgraphs[[9]]
+sigbehgraphs[[10]]
+sigbehgraphs[[11]]
+sigbehgraphs[[12]]
+sigbehgraphs[[13]]
+sigbehgraphs[[14]]
+sigbehgraphs[[15]]
+sigbehgraphs[[16]]
+sigbehgraphs[[17]]
+sigbehgraphs[[18]]
+sigbehgraphs[[19]]
+sigbehgraphs[[20]]
+```
+

@@ -8,6 +8,8 @@ module mm
 	# Required libraries
 	using DifferentialEquations
 	using ParameterizedFunctions
+	#using LinearAlgebra
+	#LinearAlgebra.BLAS.set_num_threads(1)
 
 	# ODE system
 	odeFB = @ode_def begin
