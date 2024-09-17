@@ -37,7 +37,7 @@ ABTC <- function(Data){
 ```
 
 ```{r, set_WD}
-setwd("C:/Users/ese_1/OneDrive/Documentos/CoRa/")
+setwd("C:/Users/ese_1/OneDrive/Escritorio/CoRa/")
 ```
 
 ```{r, Test_Data}
@@ -187,17 +187,17 @@ WholeKdissplot
 DissimMat <- CalcABTC
 
 pamAUTCMaxK <- pam(DissimMat, diss = T, k = subMaxK30)
-ClusterMaxK <- pamAUTCMaxK$clustering
-DissimMatMaxK <- DissimMat[names(sort(ClusterMaxK)), names(sort(ClusterMaxK))]
-MaxKdissplot <- ggdissplot(as.dist(DissimMatMaxK), labels = sort(ClusterMaxK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "midnightblue", high = "white", na.value = "grey75") + ggtitle("Individual Model Clustering, 30% of sample analized for clustering")
+#ClusterMaxK <- pamAUTCMaxK$clustering
+#DissimMatMaxK <- DissimMat[names(sort(ClusterMaxK)), names(sort(ClusterMaxK))]
+#MaxKdissplot <- ggdissplot(as.dist(DissimMatMaxK), labels = sort(ClusterMaxK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "midnightblue", high = "white", na.value = "grey75") + ggtitle("Individual Model Clustering, 30% of sample analized for clustering")
 
-DissimMat <- CalcABTC
-pamAUTCWholeK <- pam(DissimMat, diss = T, k = subWholeK30)
-ClusterWholeK <- pamAUTCWholeK$clustering
-DissimMatWholeK <- DissimMat[names(sort(ClusterWholeK)), names(sort(ClusterWholeK))]
-WholeKdissplot <- ggdissplot(as.dist(DissimMatWholeK), labels = sort(ClusterWholeK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "midnightblue", high = "white", na.value = "grey75") + ggtitle("AllxAll Clustering, 30% of sample analized for clustering")
-MaxKdissplot
-WholeKdissplot
+#DissimMat <- CalcABTC
+#pamAUTCWholeK <- pam(DissimMat, diss = T, k = subWholeK30)
+#ClusterWholeK <- pamAUTCWholeK$clustering
+#DissimMatWholeK <- DissimMat[names(sort(ClusterWholeK)), names(sort(ClusterWholeK))]
+#WholeKdissplot <- ggdissplot(as.dist(DissimMatWholeK), labels = sort(ClusterWholeK), method = NA, cluster_labels = T, cluster_lines = T, diag = F) + scale_fill_gradient(low = "midnightblue", high = "white", na.value = "grey75") + ggtitle("AllxAll Clustering, 30% of sample analized for clustering")
+#MaxKdissplot
+#WholeKdissplot
 ```
 
 ```{r, graphing_Cluster_Members}
@@ -208,7 +208,7 @@ ClusterGraphing <- function(data, ClusNum, Cluster, title){
   b + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
 }
 
-ClusterGraphing(CoRas, 5, ClusterWholeK, "Cluster 7 according to AllxAll Clustering, 30% subsample for Clustering")
+#ClusterGraphing(CoRas, 5, ClusterWholeK, "Cluster 7 according to AllxAll Clustering, 30% subsample for Clustering")
 #ClusterGraphing(CoRas, 6, ClusterWholeK, "Cluster 6 according to AllxAll Clustering, 30% subsample for Clustering")
 ```
 
@@ -278,13 +278,13 @@ plots[[8]]
 
 
 ```{r Bootstrapping}
-subsample <- function(data, percentage = 25){
-  indexes <- sort(sample(1:nrow(data), round(nrow(data)/100 * percentage), replace = FALSE))
-  return(data[indexes, indexes])
-}
+#subsample <- function(data, percentage = 25){
+#  indexes <- sort(sample(1:nrow(data), round(nrow(data)/100 * percentage), replace = FALSE))
+#  return(data[indexes, indexes])
+#}
 
-subAUTC <- subsample(CalcAUTC, 75)
-subAUTC
+#subAUTC <- subsample(CalcAUTC, 75)
+#subAUTC
 
 subModels <- unique(str_split_fixed(colnames(subAUTC), "_", 2)[,1])
 #We do this first sapply to obtain the indexes for which column and row have the same starting part of their name, which means they're an "IntraModelComparison"
@@ -299,7 +299,9 @@ subMaxK
 
 subWholeK <- clusGap(subAUTC, FUN = kmeans, nstart = 25, K.max = MaxK, B = 50)
 subWholeK<- maxSE(subWholeK$Tab[,"gap"], subWholeK$Tab[, "SE.sim"], method = "firstSEmax", SE.factor = 1)
+```
 
+```{r}
 subDissimMat <- subAUTC
 
 subpamAUTCMaxK <- pam(subDissimMat, diss = T, k = subMaxK)

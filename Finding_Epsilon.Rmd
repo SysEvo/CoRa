@@ -234,7 +234,7 @@ colnames(CoRas) <- c(ATFv1Names, ATFv2Names, FADv1Names, FADv2Names)
 #BNFv2Names)
 Graphing <- tidyr::gather(CoRas)
 Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas))
-a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")")))
+a <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + ylim(0, 1) + ggtitle("Ejemplos de CoRa lines") + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
 a
 ```
 

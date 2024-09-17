@@ -1,5 +1,5 @@
 ---
-title: "Example pipeline"
+title: "Example-pipeline"
 output: html_document
 date: "2024-08-05"
 ---
