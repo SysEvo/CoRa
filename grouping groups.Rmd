@@ -15,6 +15,8 @@ library(ggplot2)
 library(ggdendro)
 library(seriation)
 library(dplyr)
+library(ggpubr)
+library(patchwork)
 ```
 
 ```{r set_WD}
@@ -22,7 +24,6 @@ setwd("C:/Users/ese_1/OneDrive/Escritorio/CoRa")
 ```
 
 ```{r loading pam objects}
-setwd("D:/CoRa")
 Maxkr10pam <- readRDS("./pamRDSs/pamAUTCMaxK_10.RDS")
 Wholekr10pam <- readRDS("./pamRDSs/pamAUTCWholeK_10.RDS")
 Maxkr9pam <- readRDS("./pamRDSs/pamAUTCMaxK_9.RDS")
@@ -33,7 +34,7 @@ Maxkr5pam <- readRDS("./pamRDSs/pamAUTCMaxK_5.RDS")
 Wholekr5pam <- readRDS("./pamRDSs/pamAUTCWholeK_5.RDS")
 Maxkr3pam <- readRDS("./pamRDSs/pamAUTCMaxK_3.RDS")
 Wholekr3pam <- readRDS("./pamRDSs/pamAUTCWholeK_3.RDS")
-Maxkr1pam <- pamAUTCMaxK
+#Maxkr1pam <- pamAUTCMaxK
 Wholekr1pam <- pamAUTCWholeK
 ```
 
@@ -60,8 +61,6 @@ medoidmat
 informativenames <- c(paste0("R1Cluster", 1:length(r1medoids)), paste0("R3Cluster", 1:length(r3medoids)), paste0("R5Cluster", 1:length(r5medoids)), paste0("R6Cluster", 1:length(r6medoids)), paste0("R9Cluster", 1:length(r9medoids)), paste0("R10Cluster", 1:length(r10medoids)))
 
 colnames(medoidmat) <- rownames(medoidmat) <- informativenames
-
-medoidmat
 ```
 
 ```{r unreadable dendrogram}
@@ -70,27 +69,33 @@ ggdendrogram(dendro) + ggtitle("Comparison of all repetitions' cluster medoids")
 ```
 
 ```{r finding a good maxdist}
-maxdist <- 60
 plot(dendro)
-a <- rect.hclust(dendro, h = maxdist)
+a <- rect.hclust(dendro, k = 20)
 ```
 
 ```{r}
+ClusterGraphing <- function(data, ClusNum, Cluster, title){
+  Partial = tidyr::gather(data[, names(Cluster[which(Cluster == ClusNum)])])
+  Partial$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(data[, names(Cluster[which(Cluster == ClusNum)])]))
+  b <- ggplot(data = Partial, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + ggtitle(title)
+  b + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
+}
+
 RepetitionAndClusterGraphing <- function(data, name){
   Repetition <- str_extract(name, regex("[0-9]+"))
   Cluster <- str_extract(name, regex("[0-9]+$"))
   if(Repetition == "1"){
-    ClusterGraphing(data, Cluster, Wholekr1pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+    ClusterGraphing(data, Cluster, Wholekr1pam$clustering, paste0("Cluster ", Cluster, " repetición ", Repetition))
   }else if(Repetition == "3"){
-    ClusterGraphing(data, Cluster, Wholekr3pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+    ClusterGraphing(data, Cluster, Wholekr3pam$clustering, paste0("Cluster ", Cluster, " repetición ", Repetition))
   }else if(Repetition == "5"){
-    ClusterGraphing(data, Cluster, Wholekr5pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+    ClusterGraphing(data, Cluster, Wholekr5pam$clustering, paste0("Cluster ", Cluster, " repetición ", Repetition))
   }else if(Repetition == "6"){
-    ClusterGraphing(data, Cluster, Wholekr6pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+    ClusterGraphing(data, Cluster, Wholekr6pam$clustering, paste0("Cluster ", Cluster, " repetición ", Repetition))
   }else if(Repetition == "9"){
-    ClusterGraphing(data, Cluster, Wholekr9pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+    ClusterGraphing(data, Cluster, Wholekr9pam$clustering, paste0("Cluster ", Cluster, " repetición ", Repetition))
   }else{
-    ClusterGraphing(data, Cluster, Wholekr10pam$clustering, paste0("Cluster ", Cluster, " of Repeat ", Repetition))
+    ClusterGraphing(data, Cluster, Wholekr10pam$clustering, paste0("Cluster ", Cluster, " repetición ", Repetition))
   }
 }
 
@@ -118,7 +123,15 @@ clustergraphslist <- megafunction(CoRas, a)
 ```
 
 ```{r}
-clustergraphslist[[2]]
+clustergraphslist
+```
+
+```{r}
+ggarrange(plotlist = clustergraphslist[[10]], ncol = 3, nrow = 3)
+```
+
+```{r}
+clustergraphslist[[14]]
 ```
 
 ```{r Distilling the Signature Behaviour}
@@ -132,8 +145,7 @@ ClusterClusterGraphing <- function(data, names, sigbehplotting, title){
   Partial$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(subset(data, select = names)))
   Sigbeh <- data.frame(sigbehplotting, seq(from = 0, to = 0.01, by = 1/60000))
   colnames(Sigbeh) <- c("value", "step")
-  b <- ggplot(data = Partial, aes(x = step, y = value, col = key)) + geom_line(size = 1.5, alpha = 0.35) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ggtitle(title)
-  b + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
+  b <- ggplot(data = Partial, aes(x = step, y = value, col = key)) + geom_line(size = 1.5, alpha = 0.35) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + ggtitle(title) + ylim(0, 1) + theme(plot.title = element_text(size = 9), axis.title.y = element_text(size = 12), axis.title.x = element_text(size = 12)) + theme(axis.text = element_text(size = 8)) + ylim(0, 1)
   b + geom_line(data = Sigbeh, aes(x = step, y = value), col = "black", size = 1.5)
 }
 
@@ -160,13 +172,14 @@ sigbehgraph <- function(data, names, title){
   
   percent <- round((length(temp) / (ncol(CoRas) * 6) * 100), digits = 3)
   
-  ClusterClusterGraphing(data, temp, sigbeh, paste0(title, ". ", percent, "% of curves"))
+  ClusterClusterGraphing(data, temp, sigbeh, paste0(title, ". ", percent, "% de las CoRa lines"))
+  #ClusterClusterGraphing(data, temp, sigbeh, title)
 }
 
 signaturebehaviours <- function(data, list){
   temp <- list()
   for(i in 1:length(list)){
-    temp[[i]] <- sigbehgraph(data, names(list[[i]]), paste0("Signature Behaviour of C.Cluster ", i))
+    temp[[i]] <- sigbehgraph(data, names(list[[i]]), paste0("Comportamiento #", i))
   }
   return(temp)
 }
@@ -174,26 +187,271 @@ signaturebehaviours <- function(data, list){
 sigbehgraphs <- signaturebehaviours(CoRas, a)
 ```
 
-```{r showcase}
-sigbehgraphs[[1]]
-sigbehgraphs[[2]]
-sigbehgraphs[[3]]
-sigbehgraphs[[4]]
-sigbehgraphs[[5]]
-sigbehgraphs[[6]]
-sigbehgraphs[[7]]
-sigbehgraphs[[8]]
-sigbehgraphs[[9]]
-sigbehgraphs[[10]]
-sigbehgraphs[[11]]
+```{r sigbeh showcase, warning=FALSE}
+#sigbehgraphs
+#ggarrange(sigbehgraphs[[2]], sigbehgraphs[[3]], sigbehgraphs[[10]], sigbehgraphs[[20]], ncol = 2, nrow = 2)
+#ggarrange(sigbehgraphs[[1]], sigbehgraphs[[14]], sigbehgraphs[[17]], sigbehgraphs[[18]], ncol = 2, nrow = 2)
 sigbehgraphs[[12]]
-sigbehgraphs[[13]]
-sigbehgraphs[[14]]
-sigbehgraphs[[15]]
-sigbehgraphs[[16]]
-sigbehgraphs[[17]]
-sigbehgraphs[[18]]
-sigbehgraphs[[19]]
-sigbehgraphs[[20]]
+#ggarrange(plotlist = sigbehgraphs, ncol = 4, nrow = 5)
+#arrange <- ggarrange(plotlist = sigbehgraphs, ncol = 4, nrow = 5)
+#ggsave("Comportamientos representativos.png", arrange, height = 12, width = 16, dpi = 300)
 ```
+
+```{r Cluster number average}
+maxkdata <- c(subMaxK30, length(Maxkr10pam$medoids), length(Maxkr3pam$medoids), length(Maxkr5pam$medoids), length(Maxkr6pam$medoids), length(Maxkr9pam$medoids))
+#sd(maxkdata)
+wholekdata <- c(length(Wholekr10pam$medoids), length(Wholekr1pam$medoids), length(Wholekr3pam$medoids), length(Wholekr5pam$medoids), length(Wholekr6pam$medoids), length(Wholekr9pam$medoids))
+#sd(wholekdata)
+
+maxkdata <- as.data.frame(maxkdata)
+maxkdata$index <- 1:6
+
+wholekdata <- as.data.frame(wholekdata)
+wholekdata$index <- 1:6
+
+averagemaxk <- ggplot(data = maxkdata, aes(x = index, y = maxkdata)) + geom_point(size = 2) + geom_line() + ggtitle("Maxk values across repetitions") + ylim(0, max(maxkdata))
+averagewholek <- ggplot(data = wholekdata, aes(x = index, y = wholekdata)) + geom_point(size = 2) + geom_line()+ ggtitle("Wholek values across repetitions") + ylim(0, max(maxkdata))
+
+ggarrange(averagemaxk, averagewholek, ncol = 2, nrow = 1)
+```
+
+```{r Cluster member origin}
+
+cgcgraph <- function(names, title, motifs){
+  MembersByMotif <- str_extract(names, regex("[A-Z]+v?[1-9]?"))
+  MotifList <- unique(MembersByMotif)
+  Count <- c(rep(0, length(MotifList)))
+  for(i in 1:length(unique(MotifList))){
+    Count[i] <- sum(MembersByMotif == unique(MotifList)[i])
+  }
+  names(Count) <- unique(MotifList)
+  Plotting <- data.frame(names(Count), Count, row.names = NULL)
+  colnames(Plotting) <- c("Motivo", "Count")
+  Plotting <- Plotting %>% 
+    arrange(desc(Motivo)) %>%
+    mutate(prop = Count / sum(Plotting$Count) *100) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop)
+  
+  cbp1 <- c("#000000", "#E69F00", "#56B4E9", "#009E73","#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  names(cbp1) <- motifs
+  
+  graph <- ggplot(Plotting, aes(x = "", y = prop, fill=Motivo)) + geom_bar(stat = "identity", width = 1, colour = "white") + coord_polar("y", start = 0) + theme_void() + ggtitle(title)  + theme(plot.title = element_text(size = 26)) + scale_fill_manual(values=cbp1)
+  # + geom_text(aes(y = ypos, label = paste0(round(prop, 1), "%")), color = "white", size=5)
+  # , legend.position = "none"
+}
+
+cgcnamegathering <- function(data, names, motifs, title){
+  temp <- c()
+  for(i in names){
+    Repetition <- str_extract(i, regex("[0-9]+"))
+    Cluster <- str_extract(i, regex("[0-9]+$"))
+    if(Repetition == "1"){
+      temp <- append(temp, names(Wholekr1pam$clustering[which(Wholekr1pam$clustering == Cluster)]))
+    }else if(Repetition == "3"){
+      temp <- append(temp, names(Wholekr3pam$clustering[which(Wholekr3pam$clustering == Cluster)]))
+    }else if(Repetition == "5"){
+      temp <- append(temp, names(Wholekr5pam$clustering[which(Wholekr5pam$clustering == Cluster)]))
+    }else if(Repetition == "6"){
+      temp <- append(temp, names(Wholekr6pam$clustering[which(Wholekr6pam$clustering == Cluster)]))
+    }else if(Repetition == "9"){
+      temp <- append(temp, names(Wholekr9pam$clustering[which(Wholekr9pam$clustering == Cluster)]))
+    }else{
+      temp <- append(temp, names(Wholekr10pam$clustering[which(Wholekr10pam$clustering == Cluster)]))
+    }
+  }
+  
+  percent <- round((length(temp) / (ncol(CoRas) * 6) * 100), digits = 3)
+  
+  return(cgcgraph(temp, paste0(title), motifs))
+}
+
+clustergroupcomposition <- function(data, list){
+  temp <- list()
+  AllMotifs <- unique(str_extract(colnames(data), regex("[A-Z]+v?[1-9]?")))
+  for(i in 1:length(list)){
+    temp[[i]] <- cgcnamegathering(data, names(list[[i]]), AllMotifs, paste0("Grupo ", i))
+  }
+  return(temp)
+}
+
+cgcgraphs <- clustergroupcomposition(CoRas, a)
+```
+
+```{r composition showcase}
+#cgcgraphs
+
+ggarrange(cgcgraphs[[11]], cgcgraphs[[2]], cgcgraphs[[3]], cgcgraphs[[4]], cgcgraphs[[5]], cgcgraphs[[6]], cgcgraphs[[7]], cgcgraphs[[8]], cgcgraphs[[9]], cgcgraphs[[10]], cgcgraphs[[1]], cgcgraphs[[12]], cgcgraphs[[13]], cgcgraphs[[14]], cgcgraphs[[15]], cgcgraphs[[16]], cgcgraphs[[17]], cgcgraphs[[18]], cgcgraphs[[19]], cgcgraphs[[20]], ncol = 4, nrow = 5, common.legend = T, legend = "right")
+#ggarrange(cgcgraphs[[1]], cgcgraphs[[14]], cgcgraphs[[17]], cgcgraphs[[18]], ncol = 2, nrow = 2)
+```
+
+```{r Signature Behaviour per motif}
+sigbeh <- function(values){
+  signaturebehaviour <- apply(values, 1, function(a){mean(a, na.rm = TRUE)})
+  return(signaturebehaviour)
+}
+
+MotifsPresent <- function(names){
+  MembersByMotif <- str_extract(names, regex("[A-Z]+v?[1-9]?"))
+  MotifList <- unique(MembersByMotif)
+  return(MotifList)
+}
+
+sigbehgraphdata <- function(data, names){
+  temp <- c()
+  for(i in names){
+    Repetition <- str_extract(i, regex("[0-9]+"))
+    Cluster <- str_extract(i, regex("[0-9]+$"))
+    if(Repetition == "1"){
+      temp <- append(temp, names(Wholekr1pam$clustering[which(Wholekr1pam$clustering == Cluster)]))
+    }else if(Repetition == "3"){
+      temp <- append(temp, names(Wholekr3pam$clustering[which(Wholekr3pam$clustering == Cluster)]))
+    }else if(Repetition == "5"){
+      temp <- append(temp, names(Wholekr5pam$clustering[which(Wholekr5pam$clustering == Cluster)]))
+    }else if(Repetition == "6"){
+      temp <- append(temp, names(Wholekr6pam$clustering[which(Wholekr6pam$clustering == Cluster)]))
+    }else if(Repetition == "9"){
+      temp <- append(temp, names(Wholekr9pam$clustering[which(Wholekr9pam$clustering == Cluster)]))
+    }else{
+      temp <- append(temp, names(Wholekr10pam$clustering[which(Wholekr10pam$clustering == Cluster)]))
+    }
+  }
+  
+  sigbeh <- sigbeh(subset(data, select = temp))
+}
+
+motifnames <- function(data, names){
+  temp <- c()
+  for(i in names){
+    Repetition <- str_extract(i, regex("[0-9]+"))
+    Cluster <- str_extract(i, regex("[0-9]+$"))
+    if(Repetition == "1"){
+      temp <- append(temp, names(Wholekr1pam$clustering[which(Wholekr1pam$clustering == Cluster)]))
+    }else if(Repetition == "3"){
+      temp <- append(temp, names(Wholekr3pam$clustering[which(Wholekr3pam$clustering == Cluster)]))
+    }else if(Repetition == "5"){
+      temp <- append(temp, names(Wholekr5pam$clustering[which(Wholekr5pam$clustering == Cluster)]))
+    }else if(Repetition == "6"){
+      temp <- append(temp, names(Wholekr6pam$clustering[which(Wholekr6pam$clustering == Cluster)]))
+    }else if(Repetition == "9"){
+      temp <- append(temp, names(Wholekr9pam$clustering[which(Wholekr9pam$clustering == Cluster)]))
+    }else{
+      temp <- append(temp, names(Wholekr10pam$clustering[which(Wholekr10pam$clustering == Cluster)]))
+    }
+  }
+  
+  Motifs <- MotifsPresent(temp)
+}
+
+randomname <- function(behaviours, motifs){
+  eachmotif <- unique(unlist(motifs))
+  temp <- matrix(0, nrow = length(eachmotif), ncol = length(behaviours), dimnames = list(eachmotif, 1:length(motifs)))
+  for(i in eachmotif){
+    counter <- 0
+    for(j in motifs){
+      counter <- counter + 1
+     if(any(j == i)){
+       temp[i, counter] <- 1
+     } 
+    }
+  }
+  return(temp)
+}
+
+randomname2 <- function(behaviours, membership){
+  graphing <- as.data.frame(behaviours)
+  colnames(graphing) <- paste0("Behaviour ", 1:ncol(membership))
+  temp <- list()
+  c20 <- c("dodgerblue2","#E31A1C","green4","#6A3D9A","#FF7F00","black", "gold1", "skyblue2", "#FB9A99",
+  "palegreen2","#CAB2D6", "#FDBF6F", "gray70","maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+  "darkturquoise", "yellow4")
+  names(c20) <- paste0("Behaviour ", 1:20)
+  for(i in 1:nrow(membership)){
+    Partial = tidyr::gather(graphing[, which(membership[i,] == 1)])
+    Partial$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), sum(membership[i,]))
+    temp[[i]] <- ggplot(data = Partial, aes(x = step, y = value, color = factor(key, levels = c("Behaviour 1",  "Behaviour 2",  "Behaviour 3",  "Behaviour 4",  "Behaviour 5",  "Behaviour 6",  "Behaviour 7", "Behaviour 8",  "Behaviour 9",  "Behaviour 10", "Behaviour 11", "Behaviour 12", "Behaviour 13", "Behaviour 14", "Behaviour 15", "Behaviour 16", "Behaviour 17", "Behaviour 18", "Behaviour 19", "Behaviour 20")))) + geom_line(size = 1.5) + theme(legend.position = "right", legend.text = element_text(size = 25), legend.key.size = unit(1, 'cm'), legend.title = element_blank()) + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + ggtitle(paste0("Comportamientos representativos presentes en el motivo ", rownames(membership)[i])) + ylim(0, 1) + scale_colour_manual(name = "Behaviours", values=c("Behaviour 1" = "dodgerblue2", "Behaviour 2" = "#E31A1C", "Behaviour 3" = "green4", "Behaviour 4" = "#6A3D9A", "Behaviour 5" = "#FF7F00", "Behaviour 6" = "black", "Behaviour 7" = 'gold1', "Behaviour 8" = "skyblue2", "Behaviour 9" = "#FF7F00", "Behaviour 10" = "palegreen2", "Behaviour 11" = "#CAB2D6", "Behaviour 12" = "#FDBF6F", "Behaviour 13" = "gray70", "Behaviour 14" = "maroon", "Behaviour 15" = "orchid1", "Behaviour 16" ="deeppink1", "Behaviour 17" = "blue1", "Behaviour 18" = "steelblue4", "Behaviour 19" = "darkturquoise", "Behaviour 20" = "yellow4"), drop = F)
+  }
+  return(temp)
+}
+signaturebehavioursperMotif <- function(data, list){
+  temp1 <- list()
+  temp2 <- list()
+  for(i in 1:length(list)){
+    temp1[[i]] <- sigbehgraphdata(data, names(list[[i]]))
+    temp2[[i]] <- motifnames(data, names(list[[i]]))
+  }
+  temp3 <- randomname(temp1, temp2)
+  
+  temp4 <- randomname2(temp1, temp3)
+  return(temp4)
+}
+
+behaviourspermotif <- signaturebehavioursperMotif(CoRas, a)
+```
+
+```{r behaviour per motif showcase}
+bpmarrange <- ggarrange(behaviourspermotif[[2]], behaviourspermotif[[1]], behaviourspermotif[[3]], behaviourspermotif[[4]], behaviourspermotif[[5]], behaviourspermotif[[6]], behaviourspermotif[[7]], behaviourspermotif[[8]], ncol = 2, nrow = 4, legend = "right", common.legend = TRUE)
+bpmarrange
+ggsave("Comportamientos representativos de cada motivo.png", height = 18, width = 18, dpi = 300)
+```
+
+```{r}
+Examination <- CoRas[, which(is.nan(apply(CoRas, 2, sum)))]
+NaNContaining <- names(Examination)
+
+sort(table(Wholekr10pam$clustering[NaNContaining]), decreasing = T)
+sort(table(Wholekr9pam$clustering[NaNContaining]), decreasing = T)
+sort(table(Wholekr6pam$clustering[NaNContaining]), decreasing = T)
+sort(table(Wholekr5pam$clustering[NaNContaining]), decreasing = T)
+sort(table(Wholekr3pam$clustering[NaNContaining]), decreasing = T)
+sort(table(Wholekr1pam$clustering[NaNContaining]), decreasing = T)
+```
+```{r}
+howmanyNaNs <- apply(Examination, 2, function(a) sum(is.nan(a)))
+NaNtable <- sort(table(howmanyNaNs), decreasing = T) /9.45
+NaNtable
+```
+
+```{r}
+NaN1 <- DissimMat[names(which(apply(Examination, 2, function(a) sum(is.nan(a))) == 1)),]
+sum(NaN1) / ((nrow(NaN1) -1) * ncol(NaN1))
+NaN2 <- DissimMat[names(which(apply(Examination, 2, function(a) sum(is.nan(a))) == 2)),]
+sum(NaN2) / ((nrow(NaN2) -1) * ncol(NaN2))
+NaN3 <- DissimMat[names(which(apply(Examination, 2, function(a) sum(is.nan(a))) == 3)),]
+sum(NaN3) / ((nrow(NaN3) -1) * ncol(NaN3))
+NaN4 <- DissimMat[names(which(apply(Examination, 2, function(a) sum(is.nan(a))) == 4)),]
+sum(NaN4) / ((nrow(NaN4) -1) * ncol(NaN4))
+NaN5 <- DissimMat[names(which(apply(Examination, 2, function(a) sum(is.nan(a))) == 5)),]
+sum(NaN5) / ((nrow(NaN5) -1) * ncol(NaN5))
+NaN7 <- DissimMat[names(which(apply(Examination, 2, function(a) sum(is.nan(a))) == 7)),]
+sum(NaN7) / ((nrow(NaN7) -1) * ncol(NaN7))
+```
+```{r}
+Graphing <- data.frame(CoRas[,15], seq(from = 0, to = 0.01, by = 1/60000), rep("a", 601))
+colnames(Graphing) <- c("value", "step", "key")
+b <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + ggtitle("Una CoRa line") + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
+b
+```
+
+```{r}
+compshow <- head(CoRas[, c(1,4)])
+Graphing <- tidyr::gather(compshow)
+Graphing$step <- rep(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), 2)
+b <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text.y = element_text(size = 20), axis.text.x = element_blank()) + ylim(0, 1) + ggtitle("Ejemplificación de comparación entre CoRa lines") + annotate("segment", x = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), xend = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), y = Graphing$value[1:6], yend = Graphing$value[7:12], colour = "black", linewidth = 1.5, linetype = 2) + geom_point(size = 9) + geom_line(size = 3)
+b
+```
+
+```{r}
+Graphing <- data.frame(CoRas[,colnames(CoRas[,Wholekr5pam$clustering == 11])[which(str_extract(colnames(CoRas[,Wholekr5pam$clustering == 11]), regex("[A-Z]+v?[1-9]?")) == "BNFv1")]], seq(from = 0, to = 0.01, by = 1/60000), rep("a", 601))
+colnames(Graphing) <- c("value", "step", "key")
+b <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[theta], "(Y, "*mu[Y],")"))) + ggtitle("Una CoRa line") + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
+b
+```
+
+```{r}
+Graphing <- tidyr::gather(CoRas[,str_extract(colnames(CoRas), regex("[A-Z]+v?[1-9]?")) == "BNFv1"])
+Graphing$step <- rep(seq(from = 0, to = 0.01, by = 1/60000), ncol(CoRas[,str_extract(colnames(CoRas), regex("[A-Z]+v?[1-9]?")) == "BNFv1"]))
+b <- ggplot(data = Graphing, aes(x = step, y = value, col = key)) + geom_line(size = 1.5) + theme(legend.position = "none") + ylab(expression(paste("CoRa"[mu[Y]%in%theta], "("*mu[Y],")"))) + ggtitle("title") + theme(plot.title = element_text(size = 32), axis.title.y = element_text(size = 32), axis.title.x = element_text(size = 32)) + theme(axis.text = element_text(size = 20)) + ylim(0, 1)
+b
+```
+
 
